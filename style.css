@@ -727,6 +727,9 @@ footer {
   color: var(--tekst-svak);
   padding: 4px 16px 8px;
 }
+.footer-bytt .footer-hover { display: none; }
+.footer-bytt:hover .footer-standard { display: none; }
+.footer-bytt:hover .footer-hover { display: inline; }
 
 /* ---- Stor CTA: Gi anbefaling ---- */
 .cta {
