@@ -18,8 +18,8 @@ const state = {
   prioritet: { pris: 3, dekning: 0, sikkerhet: 0 },
   // Vis prioritet-panelet (kundepreferanser utover pris) på hjemskjermen. Standard: på.
   visPrioritet: true,
-  // Ekskluder dagens operatør fra anbefalingen (avanserte innstillinger). Standard: av.
-  ekskluderDagens: false,
+  // Ekskluder dagens operatør fra anbefalingen (avanserte innstillinger). Standard: på.
+  ekskluderDagens: true,
 };
 
 // Største operatører i Norge. Kunden kan ha hvem som helst - brukes som
@@ -922,6 +922,8 @@ function lagreMeny() {
       visPrioritet: state.visPrioritet,
       noyaktigData: state.noyaktigData,
       ekskluderDagens: state.ekskluderDagens,
+      // Markør for engangs-migrering til ny standard (ekskluder dagens = på).
+      ekskluderStandardPaa: true,
     };
     localStorage.setItem(MENY_NOKKEL, JSON.stringify(data));
   } catch {}
@@ -958,7 +960,9 @@ function lastMeny() {
     state.noyaktigData = data.noyaktigData;
     document.getElementById("noyaktigData").checked = data.noyaktigData;
   }
-  if (typeof data.ekskluderDagens === "boolean") {
+  // Engangs-migrering: gamle lagrede valg (før «ekskluder dagens» ble standard på)
+  // mangler markøren -> behold HTML-standarden (på) i stedet for den gamle verdien.
+  if (data.ekskluderStandardPaa && typeof data.ekskluderDagens === "boolean") {
     state.ekskluderDagens = data.ekskluderDagens;
     document.getElementById("ekskluderDagens").checked = data.ekskluderDagens;
   }
