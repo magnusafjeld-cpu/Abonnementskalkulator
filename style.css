@@ -274,10 +274,13 @@ header .sub { font-size: 12px; opacity: .8; letter-spacing: .3px; }
 .kalk-aapne {
   flex: 0 0 auto;
   width: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--navy);
   border: 1.5px solid var(--kant);
   background: #fff;
   border-radius: 10px;
-  font-size: 22px;
   cursor: pointer;
   transition: background .12s, border-color .12s;
 }
