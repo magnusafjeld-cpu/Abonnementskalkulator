@@ -10,7 +10,7 @@
     "Telenor": {
       "modell": "familiemedlem_fastpris",
       "gjelder_kun_ubegrenset": true,
-      "medlemspris": { "voksen": 499, "under_30": 399, "under_13": 249 }
+      "medlemspris": { "voksen": 499, "under_30": 399 }
     },
     "Telia": {
       "modell": "dyreste_full_plantype",
@@ -81,16 +81,6 @@
       "ubegrenset": true,
       "hastighet_mbit": 250,
       "pris_per_sim": 599,
-      "alder_rabatt": [{ "maks": 29, "rabatt_kr": 100 }]
-    },
-    {
-      "id": "telenor_ubegrenset_normal",
-      "leverandor": "Telenor",
-      "navn": "Ubegrenset Normal",
-      "data_gb": 0,
-      "ubegrenset": true,
-      "hastighet_mbit": 1000,
-      "pris_per_sim": 699,
       "alder_rabatt": [{ "maks": 29, "rabatt_kr": 100 }]
     },
     {
