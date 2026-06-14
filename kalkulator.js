@@ -421,10 +421,15 @@ function velgPlan(leverandor, bruker) {
 // ekstra familiemedlem på ubegrenset betaler en FAST medlemspris etter alder
 // (voksen / under_30 / under_13). Ikke-kvalifiserte planer (fastdata): egen pris.
 // Medlemmer kan ha mindre abo - da gjelder ikke familieprisen for dem.
-function medlemsprisForAlder(alder, mp) {
-  if (alder != null && alder < 13) return mp.under_13 ?? mp.voksen ?? 0;
-  if (alder != null && alder < 30) return mp.under_30 ?? mp.voksen ?? 0;
-  return mp.voksen ?? 0;
+// En plan kan overstyre medlemsprisen for et aldersledd via 'familie_medlemspris'
+// (f.eks. Sikre: U13 betaler 249 som familiemedlem, mens vanlige ubegrenset
+// faller tilbake på voksenprisen).
+function medlemsprisForAlder(alder, mp, plan) {
+  const planMp = (plan && plan.familie_medlemspris) || {};
+  const pris = (ledd) => (planMp[ledd] != null ? planMp[ledd] : mp[ledd]);
+  if (alder != null && alder < 13) return pris("under_13") ?? pris("voksen") ?? 0;
+  if (alder != null && alder < 30) return pris("under_30") ?? pris("voksen") ?? 0;
+  return pris("voksen") ?? 0;
 }
 
 // Effektiv pris PER PERSON for Telenor-modellen. Dette er ikke en samlet
@@ -461,7 +466,7 @@ function medlemsprisFordeling(valg, regel) {
     if (i === hovedIdx) {
       priser[i] = fordelingAktiv ? ordinaer : v.pris;
     } else {
-      priser[i] = Math.min(ordinaer, medlemsprisForAlder(v.alder, mp));
+      priser[i] = Math.min(ordinaer, medlemsprisForAlder(v.alder, mp, v.plan));
     }
   });
   return priser;

@@ -102,6 +102,7 @@
       "hastighet_mbit": 1000,
       "pris_per_sim": 699,
       "alder_rabatt": [{ "maks": 29, "rabatt_kr": 100 }],
+      "familie_medlemspris": { "under_13": 249 },
       "sikkerhet": 100,
       "inkludert": ["Telenor Sikre (sikkerhetspakke)"]
     },
