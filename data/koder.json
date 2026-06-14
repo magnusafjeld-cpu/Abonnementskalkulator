@@ -1,0 +1,42 @@
+{
+  "_kommentar": "Salgssystem-koder pr. abonnement + ekstrakoder. Kilde: Provisjonsliste (ICE/Telenor/Telia/Ekstrakoder Telecom). 'binding' beskriver hvordan abonnementet selges i dag (kan endres). ice + Telenor selges uten binding; Telia X selges med tilbehørsbinding; Telia Ung/Junior selges uten binding (egen 'uten avtaletid'-kode).",
+  "_ekstrakode_logikk": "ice-familie: legges pr. ice-abo når det er >=2 ice-salg (peak: SPK26ICEFAM 500,-, ellers SICEFAMILIE 300,-). Telia X under Sommerpeak: SPK26TEXTILB pr. Telia X-abo (peaksupport tilbehørsbinding) + SPK26TEFAM familie fra og med Telia X-abo nr. 2. Telenor Sikre: TNSIKKERHET (Telenor Sikkerhetssenter) legges pr. Sikre-abo; under Sommerpeak også SPK26TNSIKK (Ekstrastøtte på sikkerhetssenteret) i tillegg. Junior/Ung og ikke-X Telia får ingen ekstrakoder.",
+
+  "salgskoder": {
+    "telenor_fast_5":            { "kode": "TNFAST5GB",    "binding": "Uten binding" },
+    "telenor_ubegrenset_enkel":  { "kode": "TNUBEGENKEL",  "binding": "Uten binding" },
+    "telenor_ubegrenset_normal": { "kode": "TNUBEGNORMAL", "binding": "Uten binding" },
+    "telenor_ubegrenset_maks":   { "kode": "TNUBEGMAKS",   "binding": "Uten binding" },
+    "telenor_sikre_mobil":       { "kode": "TNSIKREUTS",   "binding": "Uten binding" },
+
+    "ice_5":          { "kode": "SICELAN5GB",  "binding": "Uten binding" },
+    "ice_ung_5":      { "kode": "SICEUNG5GB",  "binding": "Uten binding" },
+    "ice_18":         { "kode": "SICELAN18GB", "binding": "Uten binding" },
+    "ice_ung_18":     { "kode": "SICEUNG18GB", "binding": "Uten binding" },
+    "ice_junior_3":   { "kode": "SICEJR3GB",   "binding": "Uten binding" },
+    "ice_max":        { "kode": "SICEMAX",     "binding": "Uten binding" },
+    "ice_max_netflix":{ "kode": "SICEMAXNET",  "binding": "Uten binding" },
+
+    "telia_5":         { "kode": "TE5GBTILNY",    "binding": "Tilbehørsbinding" },
+    "telia_10":        { "kode": "TE10GBTILNY",   "binding": "Tilbehørsbinding" },
+    "telia_x_start":   { "kode": "TEXSTATILNY",   "binding": "Tilbehørsbinding" },
+    "telia_x_kampanje":{ "kode": "TEXSTART12379", "binding": "Tilbehørsbinding" },
+    "telia_x_basis":   { "kode": "TEXBASTILNY",   "binding": "Tilbehørsbinding" },
+    "telia_x_max":     { "kode": "TEXMAXTILNY",   "binding": "Tilbehørsbinding" },
+    "telia_x_ung":     { "kode": "TEXUNGTILNY",   "binding": "Tilbehørsbinding" },
+    "telia_ung_10":    { "kode": "TEUNG10GB",     "binding": "Uten binding" },
+    "telia_junior_10": { "kode": "TEJR10GB",      "binding": "Uten binding" },
+    "telia_junior_1":  { "kode": "TEJR1GB",       "binding": "Uten binding" }
+  },
+
+  "telia_x_ids": ["telia_x_start", "telia_x_kampanje", "telia_x_basis", "telia_x_max", "telia_x_ung"],
+
+  "ekstrakoder": {
+    "ice_familie":        { "kode": "SICEFAMILIE",  "tekst": "ICE familieprovisjon" },
+    "ice_familie_peak":   { "kode": "SPK26ICEFAM",  "tekst": "ICE familie – Sommerpeak" },
+    "telia_peaksupport":  { "kode": "SPK26TEXTILB", "tekst": "Telia X peaksupport, tilbehørsbinding" },
+    "telia_familie_peak": { "kode": "SPK26TEFAM",   "tekst": "Telia X familie – Sommerpeak (fra abo nr. 2)" },
+    "telenor_sikkerhet":      { "kode": "TNSIKKERHET", "tekst": "Telenor Sikkerhetssenter" },
+    "telenor_sikkerhet_peak": { "kode": "SPK26TNSIKK", "tekst": "Ekstrastøtte på sikkerhetssenteret – Sommerpeak" }
+  }
+}

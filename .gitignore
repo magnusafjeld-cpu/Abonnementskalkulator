@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Editor / tooling
+.vscode/
+.idea/
+
+# Claude Code preview config (local, machine-specific)
+.claude/

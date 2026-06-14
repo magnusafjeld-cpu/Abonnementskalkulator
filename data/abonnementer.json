@@ -1,0 +1,307 @@
+{
+  "_kommentar": "Offentlig prisinfo. Oppdateres månedlig. Navn følger operatørenes egne (telenor.no, telia.no, ice.no). Pris i NOK/mnd per SIM. 'ubegrenset': true = fri data. 'hastighet_mbit' = maks hastighet planen leverer (brukes mot hastighetskrav Vanlig/Rask/Lynrask). 'alder_maks' = planen er kun for brukere t.o.m. denne alderen (junior/ung). 'alder_rabatt' = aldersbasert avslag. 'gir_familierabatt': false = planen kvalifiserer IKKE for familierabatt (ungdoms-/juniorplaner). Default ja. 'peak_pris' = pris under Sommerpeak-modus (brukes når Peak er på; ellers pris_per_sim). 'for_pris' = eksplisitt ordinær 'før'-pris som vises overstreket i fordelingen (brukes for kampanjeplaner som ikke har en egen normalpris, f.eks. Telia X Kampanje 379 med førpris 449). Priser og hastigheter er omtrentlige/eksempler - sjekk og oppdater månedlig.",
+  "_hastighet_note": "Fastdata-/kappede planer kjører normalt full nettverkshastighet (satt høyt). Ubegrenset deles i hastighetstrinn. ice-verdiene er satt moderat (eget nett) - juster ved behov.",
+  "_familierabatt_modeller": {
+    "familiemedlem_fastpris": "Telenor-stil (IKKE familierabatt, men prisfordeling per person): hovedabonnent (dyreste kvalifiserte) betaler full pris, hvert ekstra medlem på ubegrenset betaler en FAST, lavere 'medlemspris' etter alder (voksen/under_30/under_13 – ekstra billig for yngre). Vises som differensiert pris per person, ikke som en samlet rabattlinje. Gjelder kun ubegrenset (gjelder_kun_ubegrenset). Medlemmer med fastdata betaler egen pris.",
+    "dyreste_full_plantype": "Telia-stil: dyreste SIM full pris, øvrige får rabatt avhengig av plantype ('rabatt_kr_ubegrenset' for ubegrenset, 'rabatt_kr_ovrige' for fastdata/junior). Maks 'maks_antall_med_rabatt' SIM får rabatt. Kombineres med aldersrabatt.",
+    "null": "Ingen prisrabatt (f.eks. ice - iceFamilie gir felles faktura/datadeling og egne barn/ung-planer, ikke kronefradrag per SIM)."
+  },
+  "familierabatt": {
+    "Telenor": {
+      "modell": "familiemedlem_fastpris",
+      "gjelder_kun_ubegrenset": true,
+      "medlemspris": { "voksen": 499, "under_30": 399, "under_13": 249 }
+    },
+    "Telia": {
+      "modell": "dyreste_full_plantype",
+      "rabatt_kr_ubegrenset": 100,
+      "rabatt_kr_ovrige": 30,
+      "maks_antall_med_rabatt": 7
+    },
+    "ice": null
+  },
+  "_score_note": "Dekning og sikkerhet pr. operatør (0-100), brukt i den vektede totalscoren. Dekning følger målt ytelse (Rohde & Schwarz benchmark nov-des 2025: Telia 830, Telenor 778, ice 769 – Telia ≈ Telenor klart foran ice). Sikkerhet_basis: Telia har den beste innebygde sikkerheten av standardabonnementene (Svindelsperre/Nettvakt/Nettslett), så Telenor (Nettvern+) og ice (Svindelbeskyttelse). KUN Telenor Sikre Mobil ('Sikre' = abo med ekstra sikkerhetspakke) overstiger Telia – via feltet 'sikkerhet' = 100 på selve planen. Ingen andre standardplaner skal ligge over Telia.",
+  "score": {
+    "dekning":         { "Telenor": 95, "Telia": 100, "ice": 72 },
+    "sikkerhet_basis": { "Telenor": 45, "Telia": 60, "ice": 35 }
+  },
+  "_utmerkelser_note": "Utmerkelser/priser som vises på anbefalingskortet for en operatør. 'url' (valgfri) gjør utmerkelsen til en lenke til kilden/testen.",
+  "utmerkelser": {
+    "Telia": [
+      {
+        "tekst": "Best mobilnett i Norge (uavhengig nettverkstest)",
+        "url": "https://www.telia.no/globalassets/pdf/certificate-telia-norway--2025-benchmarking-campaign-best-network-performance-score.pdf"
+      }
+    ]
+  },
+  "_inkludert_note": "Tjenester som følger med per leverandør (vises i kundevisning som ekstra verdi). Telenor inkluderer sikkerhetstjenesten Nettvern+ som standard.",
+  "inkludert": {
+    "Telenor": ["Nettvern+"],
+    "Telia": ["Svindelsperre", "Nettvakt", "Nettslett"],
+    "ice": ["Svindelbeskyttelse"]
+  },
+  "_fordeler_note": "Ekstra fordeler som følger med hos hver operatør (vises i den operatør-tilpassede anbefalingen). Rediger fritt.",
+  "fordeler": {
+    "Telenor": [
+      "Min Sky – ubegrenset bildelagring",
+      "Nettvern+ svindelfilter",
+      "Nummervarsel mot svindelanrop",
+      "Nettslett ved deling av bilder/mobbing",
+      "Fri bruk i EU/EØS + UK"
+    ],
+    "Telia": [
+      "Telia Sky – ubegrenset skylagring",
+      "Svindelsperre, Nettvakt & Nettslett",
+      "Datadeling opptil 30 GB (Basis og høyere)",
+      "Roam Like Home (EU/EØS/UK/Sveits)"
+    ],
+    "ice": [
+      "Svindelbeskyttelse – stopper opptil 99 % svindel",
+      "iceFamilie – felles faktura & datadeling",
+      "eSIM inkludert",
+      "Helt uten bindingstid"
+    ]
+  },
+  "abonnementer": [
+    {
+      "id": "telenor_fast_5",
+      "leverandor": "Telenor",
+      "navn": "Fast 5 GB",
+      "data_gb": 5,
+      "ubegrenset": false,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 399,
+      "alder_rabatt": [{ "maks": 29, "rabatt_kr": 50 }]
+    },
+    {
+      "id": "telenor_ubegrenset_enkel",
+      "leverandor": "Telenor",
+      "navn": "Ubegrenset Enkel",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 599,
+      "alder_rabatt": [{ "maks": 29, "rabatt_kr": 100 }]
+    },
+    {
+      "id": "telenor_ubegrenset_normal",
+      "leverandor": "Telenor",
+      "navn": "Ubegrenset Normal",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 1000,
+      "pris_per_sim": 699,
+      "alder_rabatt": [{ "maks": 29, "rabatt_kr": 100 }]
+    },
+    {
+      "id": "telenor_ubegrenset_maks",
+      "leverandor": "Telenor",
+      "navn": "Ubegrenset Maksimal",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 1000,
+      "pris_per_sim": 799,
+      "alder_rabatt": [{ "maks": 29, "rabatt_kr": 100 }]
+    },
+    {
+      "id": "telenor_sikre_mobil",
+      "leverandor": "Telenor",
+      "navn": "Sikre Mobil",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 1000,
+      "pris_per_sim": 699,
+      "alder_rabatt": [{ "maks": 29, "rabatt_kr": 100 }],
+      "sikkerhet": 100,
+      "inkludert": ["Telenor Sikre (sikkerhetspakke)"]
+    },
+
+    {
+      "id": "telia_5",
+      "leverandor": "Telia",
+      "navn": "Telia 5 GB",
+      "data_gb": 5,
+      "ubegrenset": false,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 369,
+      "peak_pris": 299
+    },
+    {
+      "id": "telia_10",
+      "leverandor": "Telia",
+      "navn": "Telia 10 GB",
+      "data_gb": 10,
+      "ubegrenset": false,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 419,
+      "peak_pris": 369
+    },
+    {
+      "id": "telia_x_start",
+      "leverandor": "Telia",
+      "navn": "Telia X Start",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 10,
+      "pris_per_sim": 499,
+      "peak_pris": 449,
+      "produktrabatt": true
+    },
+    {
+      "id": "telia_x_kampanje",
+      "leverandor": "Telia",
+      "navn": "Telia X Kampanje",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 10,
+      "pris_per_sim": 379,
+      "for_pris": 449,
+      "produktrabatt": true,
+      "gir_familierabatt": false,
+      "kun_peak": true
+    },
+    {
+      "id": "telia_x_basis",
+      "leverandor": "Telia",
+      "navn": "Telia X Basis",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 549,
+      "peak_pris": 499,
+      "produktrabatt": true
+    },
+    {
+      "id": "telia_x_max",
+      "leverandor": "Telia",
+      "navn": "Telia X Max",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 1000,
+      "pris_per_sim": 649,
+      "peak_pris": 599,
+      "produktrabatt": true
+    },
+    {
+      "id": "telia_x_ung",
+      "leverandor": "Telia",
+      "navn": "Telia X Ung",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 449,
+      "peak_pris": 399,
+      "produktrabatt": true,
+      "alder_maks": 29,
+      "gir_familierabatt": false
+    },
+    {
+      "id": "telia_ung_10",
+      "leverandor": "Telia",
+      "navn": "Telia Ung 10 GB",
+      "data_gb": 10,
+      "ubegrenset": false,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 349,
+      "peak_pris": 299,
+      "alder_maks": 29,
+      "gir_familierabatt": false
+    },
+    {
+      "id": "telia_junior_10",
+      "leverandor": "Telia",
+      "navn": "Telia Junior 10 GB",
+      "data_gb": 10,
+      "ubegrenset": false,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 229,
+      "peak_pris": 114,
+      "alder_maks": 15,
+      "gir_familierabatt": false
+    },
+    {
+      "id": "telia_junior_1",
+      "leverandor": "Telia",
+      "navn": "Telia Junior 1 GB",
+      "data_gb": 1,
+      "ubegrenset": false,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 129,
+      "peak_pris": 64,
+      "alder_maks": 15,
+      "gir_familierabatt": false
+    },
+
+    {
+      "id": "ice_5",
+      "leverandor": "ice",
+      "navn": "ice 5 GB",
+      "data_gb": 5,
+      "ubegrenset": false,
+      "hastighet_mbit": 150,
+      "pris_per_sim": 199
+    },
+    {
+      "id": "ice_ung_5",
+      "leverandor": "ice",
+      "navn": "ice ung 5 GB",
+      "data_gb": 5,
+      "ubegrenset": false,
+      "hastighet_mbit": 150,
+      "pris_per_sim": 149,
+      "alder_maks": 29,
+      "gir_familierabatt": false
+    },
+    {
+      "id": "ice_18",
+      "leverandor": "ice",
+      "navn": "ice 18 GB",
+      "data_gb": 18,
+      "ubegrenset": false,
+      "hastighet_mbit": 150,
+      "pris_per_sim": 299
+    },
+    {
+      "id": "ice_ung_18",
+      "leverandor": "ice",
+      "navn": "ice ung 18 GB",
+      "data_gb": 18,
+      "ubegrenset": false,
+      "hastighet_mbit": 150,
+      "pris_per_sim": 249,
+      "alder_maks": 29,
+      "gir_familierabatt": false
+    },
+    {
+      "id": "ice_junior_3",
+      "leverandor": "ice",
+      "navn": "ice junior 3 GB",
+      "data_gb": 3,
+      "ubegrenset": false,
+      "hastighet_mbit": 150,
+      "pris_per_sim": 99,
+      "alder_maks": 12,
+      "gir_familierabatt": false
+    },
+    {
+      "id": "ice_max",
+      "leverandor": "ice",
+      "navn": "iceMax",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 200,
+      "pris_per_sim": 399,
+      "peak_pris": 349
+    },
+    {
+      "id": "ice_max_netflix",
+      "leverandor": "ice",
+      "navn": "iceMax med Netflix",
+      "data_gb": 0,
+      "ubegrenset": true,
+      "hastighet_mbit": 300,
+      "pris_per_sim": 449,
+      "inkludert": ["Netflix"]
+    }
+  ]
+}

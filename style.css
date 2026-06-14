@@ -1,0 +1,1131 @@
+/* ============================================================
+   Elkjøp-designspråk
+   Marineblå  #0D1A56  - header, struktur, overskrifter
+   Grønn      #00733E  - handling / anbefaling / CTA
+   Lysegrønn  #89BB33  - aksent / besparelse
+   ============================================================ */
+:root {
+  --navy: #0d1a56;
+  --navy-700: #16245f;
+  --gronn: #00733e;
+  --gronn-700: #015e33;
+  --lysgronn: #89bb33;
+  --lysgronn-700: #6f9c25;
+
+  --bg: #f5f6f9;
+  --kort: #ffffff;
+  --tekst: #14152b;
+  --tekst-svak: #5a6072;
+  --kant: #e4e7ee;
+  --skygge: 0 1px 2px rgba(13, 26, 86, .06), 0 4px 16px rgba(13, 26, 86, .06);
+  --rad: 12px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  margin: 0;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--tekst);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Header ---- */
+header {
+  background: var(--navy);
+  color: #fff;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 12px rgba(13, 26, 86, .18);
+}
+/* Hamburger-meny */
+header .meny-knapp {
+  border: none;
+  background: transparent;
+  padding: 8px 9px;
+  margin: -8px 0 -8px -5px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background .12s;
+}
+header .meny-knapp:hover { background: rgba(255, 255, 255, .1); }
+header .meny-knapp:active { background: rgba(255, 255, 255, .18); }
+.hamburger, .hamburger::before, .hamburger::after {
+  display: block;
+  width: 20px; height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  position: relative;
+}
+.hamburger::before, .hamburger::after { content: ""; position: absolute; left: 0; }
+.hamburger::before { top: -6px; }
+.hamburger::after { top: 6px; }
+
+.meny-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 12px;
+  background: #fff;
+  border: 1px solid var(--kant);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(13, 26, 86, .22);
+  padding: 14px 16px;
+  z-index: 30;
+  min-width: 250px;
+  max-width: min(300px, calc(100vw - 24px));
+}
+.meny-tittel {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.meny-panel .toggle-rad { margin-top: 12px; }
+.meny-panel .toggle-rad:first-of-type { margin-top: 0; }
+.meny-panel .toggle-tekst { color: var(--tekst); font-size: 14px; }
+.meny-tittel-2 { margin-top: 20px; }
+.meny-select {
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  font-size: 14px;
+  border: 1.5px solid var(--kant);
+  border-radius: 9px;
+  background-color: #fff;
+  color: var(--tekst);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230d1a56' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+/* Segmentert valg (Foretrekk / Krev) */
+.seg { display: flex; gap: 6px; margin-top: 10px; }
+.seg-btn {
+  flex: 1;
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid var(--kant);
+  background: #fff;
+  color: var(--tekst);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.seg-btn.aktiv { background: var(--navy); border-color: var(--navy); color: #fff; }
+.seg.disabled { opacity: .45; pointer-events: none; }
+.meny-hint {
+  margin-top: 9px;
+  font-size: 12px;
+  color: var(--tekst-svak);
+  line-height: 1.4;
+}
+
+header .logo {
+  border: none;
+  background: transparent;
+  padding: 6px 8px;
+  margin: -6px -8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background .12s;
+}
+header .logo:hover { background: rgba(255, 255, 255, .1); }
+header .logo:active { background: rgba(255, 255, 255, .18); }
+header .logo img { height: 30px; width: auto; display: block; }
+header .header-tittel .t { font-weight: 700; font-size: 15px; }
+header .sub { font-size: 12px; opacity: .8; letter-spacing: .3px; }
+
+/* ---- Layout ---- */
+.wrap {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 18px 16px 32px;
+  display: grid;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--kort);
+  border: 1px solid var(--kant);
+  border-radius: var(--rad);
+  padding: 18px;
+  box-shadow: var(--skygge);
+}
+
+/* Sommerpeak-bar (global modus) */
+.peak-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--rad);
+  background: #eef1f8;
+  border: 1px solid var(--kant);
+  transition: background .15s, border-color .15s;
+}
+.peak-bar.aktiv {
+  background: linear-gradient(135deg, #ffb347 0%, #ffce3a 100%);
+  border-color: #eaa100;
+}
+.peak-info { display: flex; align-items: center; gap: 9px; }
+.peak-ikon { font-size: 20px; filter: grayscale(1) opacity(.5); }
+.peak-bar.aktiv .peak-ikon { filter: none; }
+.peak-tekst { font-size: 14px; color: var(--tekst); line-height: 1.3; }
+.peak-tekst b { color: var(--navy); }
+.peak-bar.aktiv .peak-tekst, .peak-bar.aktiv .peak-tekst b { color: #5a3a00; }
+.peak-status { display: block; font-size: 12px; color: var(--tekst-svak); font-weight: 600; }
+.peak-bar.aktiv .peak-status { color: #6e4a00; }
+.peak-switch { display: inline-flex; flex: 0 0 auto; cursor: pointer; }
+.peak-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.peak-switch input:checked + .toggle-slider { background: var(--gronn); }
+.peak-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+.panel h2 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--navy);
+}
+.panel-topp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.panel-topp h2 { margin: 0; }
+.ny-kunde {
+  flex-shrink: 0;
+  border: 1.5px solid var(--kant);
+  background: #fff;
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.ny-kunde:active { background: #eef1f8; border-color: var(--navy); }
+
+/* ---- Skjema ---- */
+.felt { margin-bottom: 16px; }
+.felt:last-child { margin-bottom: 0; }
+.felt label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 7px;
+  font-size: 15px;
+  color: var(--tekst);
+}
+.felt input[type="text"],
+.felt input[type="number"],
+.felt select {
+  width: 100%;
+  padding: 14px;
+  font-size: 17px;
+  border: 1.5px solid var(--kant);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--tekst);
+  transition: border-color .12s, box-shadow .12s;
+}
+.felt input::placeholder { color: #9aa1b2; }
+.felt input:focus,
+.felt select:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(13, 26, 86, .12);
+}
+/* Dropdown - egen pil, fjerner standard utseende */
+.felt select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230d1a56' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 44px;
+}
+.felt select optgroup { font-weight: 700; color: var(--navy); }
+
+/* Dagens pris + kalkulator-knapp */
+.pris-felt { display: flex; gap: 8px; }
+.pris-felt #dagensPris { flex: 1; min-width: 0; }
+#dagensPris::-webkit-outer-spin-button,
+#dagensPris::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#dagensPris { -moz-appearance: textfield; appearance: textfield; }
+.kalk-aapne {
+  flex: 0 0 auto;
+  width: 54px;
+  border: 1.5px solid var(--kant);
+  background: #fff;
+  border-radius: 10px;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.kalk-aapne:hover { border-color: var(--navy); }
+.kalk-aapne:active { background: #eef1f8; }
+
+/* Kalkulator-modal */
+.kalk-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 26, 86, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+.kalk-overlay[hidden] { display: none; } /* overstyrer display:flex når skjult */
+.kalk-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+}
+.kalk-topp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.kalk-lukk {
+  border: none;
+  background: #eef1f8;
+  color: var(--tekst-svak);
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+.kalk-display {
+  background: #f4f6f9;
+  border: 1px solid var(--kant);
+  border-radius: 10px;
+  padding: 16px 18px;
+  text-align: right;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.kalk-tastatur {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.kalk-knapp {
+  padding: 17px 0;
+  font-size: 19px;
+  font-weight: 700;
+  border: 1.5px solid var(--kant);
+  background: #fff;
+  border-radius: 11px;
+  color: var(--tekst);
+  cursor: pointer;
+}
+.kalk-knapp:active { background: #eef1f8; }
+.kalk-op { background: #eef1f8; color: var(--navy); }
+.kalk-fn { color: var(--tekst-svak); }
+.kalk-eq { grid-row: span 2; background: var(--navy); color: #fff; border-color: var(--navy); }
+.kalk-null { grid-column: span 2; }
+.kalk-bruk {
+  width: 100%;
+  margin-top: 12px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 800;
+  background: var(--gronn);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.kalk-bruk:active { background: var(--gronn-700); }
+
+/* Person-liste */
+.bruker {
+  border: 1px solid var(--kant);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #fafbfd;
+}
+.bruker-topp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.bruker-topp .fjern {
+  border: none;
+  background: #eef1f8;
+  color: var(--tekst-svak);
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+.bruker-topp .fjern:active { background: #e0e5f0; }
+.bruker-rad { display: flex; flex-wrap: wrap; gap: 10px; }
+.bruker-rad .mini { flex: 1 1 130px; }
+.bruker-rad .mini.vid { flex: 1 1 160px; }
+.bruker-rad label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--tekst-svak);
+}
+.bruker-rad input,
+.bruker-rad select { padding: 12px; font-size: 16px; }
+.bruker-rad select { padding-right: 36px; }
+
+.legg-til {
+  width: 100%;
+  padding: 13px;
+  border: 1.5px dashed var(--kant);
+  background: #fff;
+  border-radius: 10px;
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.legg-til:active { background: #eef1f8; border-color: var(--navy); }
+
+/* Diskret av/på-toggle (produktrabatt) */
+.toggle-rad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-rad input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 22px;
+  border-radius: 100px;
+  background: #cdd3e0;
+  position: relative;
+  transition: background .15s;
+}
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(13, 26, 86, .3);
+  transition: transform .15s;
+}
+.toggle-rad input:checked + .toggle-slider { background: var(--gronn); }
+.toggle-rad input:checked + .toggle-slider::before { transform: translateX(16px); }
+.toggle-rad input:focus-visible + .toggle-slider { box-shadow: 0 0 0 3px rgba(13, 26, 86, .18); }
+.toggle-tekst {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tekst-svak);
+}
+
+/* ---- Resultat ---- */
+#resultat { display: grid; gap: 16px; }
+
+.anbefaling {
+  background: linear-gradient(135deg, var(--gronn) 0%, var(--gronn-700) 100%);
+  color: #fff;
+  border-radius: var(--rad);
+  padding: 22px;
+  box-shadow: 0 6px 22px rgba(0, 115, 62, .22);
+  position: relative;
+  overflow: hidden;
+}
+.anbefaling > * { position: relative; z-index: 1; }
+.anbefaling-logo {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: auto; max-width: 120px;
+  z-index: 2;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .18));
+}
+.anbefaling .merke {
+  display: inline-block;
+  background: var(--lysgronn);
+  color: var(--navy);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: .8px;
+  padding: 5px 11px;
+  border-radius: 100px;
+  margin-bottom: 12px;
+}
+.anbefaling .bytterabatt-linje {
+  margin-top: 12px;
+  background: rgba(255, 255, 255, .16);
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 10px;
+  padding: 10px 13px;
+  font-weight: 800;
+  font-size: 15px;
+}
+.anbefaling .bytterabatt-linje small { font-weight: 600; opacity: .85; }
+.anbefaling .utmerkelse {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  background: rgba(255, 255, 255, .18);
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 20px;
+  padding: 5px 13px 5px 11px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.anbefaling a.utmerkelse-lenke {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .12s;
+}
+.anbefaling a.utmerkelse-lenke:hover { background: rgba(255, 255, 255, .3); }
+.anbefaling .utmerkelse-pil { font-weight: 700; opacity: .85; }
+/* Lenke til Telenor Sikre når Sikre Mobil er en del av anbefalingen. */
+.anbefaling a.sikre-lenke {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  background: rgba(255, 255, 255, .18);
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 20px;
+  padding: 7px 14px;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.anbefaling a.sikre-lenke:hover { background: rgba(255, 255, 255, .3); }
+.anbefaling .prioritet-note {
+  margin: 0 0 14px;
+  background: rgba(255, 255, 255, .14);
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.anbefaling .fordeler {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, .25);
+}
+.anbefaling .fordeler-tittel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  opacity: .85;
+  margin-bottom: 9px;
+}
+.anbefaling .fordeler ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+.anbefaling .fordeler li {
+  font-size: 14px;
+  font-weight: 600;
+  padding-left: 25px;
+  position: relative;
+  line-height: 1.35;
+}
+.anbefaling .fordeler li::before {
+  content: "✓";
+  position: absolute;
+  left: 0; top: 0;
+  font-weight: 800;
+}
+.anbefaling .navn { font-size: 27px; font-weight: 800; letter-spacing: -.4px; }
+.anbefaling .lev { font-size: 14px; opacity: .9; margin-bottom: 14px; }
+.anbefaling .pris { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
+.anbefaling .pris small { font-size: 15px; font-weight: 600; opacity: .85; letter-spacing: 0; }
+.anbefaling .detalj { font-size: 13px; opacity: .9; margin-top: 6px; }
+
+/* ---- Besparelse ---- */
+.besparelse {
+  border-radius: var(--rad);
+  padding: 16px 18px;
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--skygge);
+}
+.besparelse.positiv {
+  background: linear-gradient(135deg, #f1f8e4 0%, #e7f3d4 100%);
+  color: var(--lysgronn-700);
+  border: 1px solid #d4e8b2;
+}
+.besparelse.positiv .ikon {
+  background: var(--lysgronn); color: #fff;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.besparelse.nulleller {
+  background: #eef1f8; color: var(--tekst-svak); border: 1px solid var(--kant);
+}
+.besparelse .aar { font-size: 13px; font-weight: 600; opacity: .85; display: block; margin-top: 2px; }
+
+/* ---- Sammenligning ---- */
+.kort-rad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--kant);
+}
+.kort-rad:last-child { border-bottom: none; }
+.kort-rad .v { display: flex; flex-direction: column; gap: 3px; }
+.kort-rad .nr {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 100px;
+  background: #eef1f8; color: var(--navy);
+  font-weight: 800; font-size: 13px; margin-right: 10px;
+}
+.kort-rad.topp .nr { background: var(--gronn); color: #fff; }
+.kort-rad .navn { font-weight: 700; }
+.kort-rad .meta { font-size: 13px; color: var(--tekst-svak); }
+.kort-rad .h { text-align: right; }
+.kort-rad .h .total { font-weight: 800; font-size: 18px; color: var(--navy); }
+.kort-rad .h .total.rabatt { color: var(--lysgronn-700); }
+/* Rabattert personpris (Sommerpeak eller Telenor-medlemspris): ordinær pris
+   overstreket over den lavere prisen som faktisk betales. */
+.kort-rad .h .for-pris {
+  font-size: 12px;
+  color: var(--tekst-svak);
+  text-decoration: line-through;
+  line-height: 1.1;
+}
+.kort-rad .h .total.rabattert { color: var(--lysgronn-700); }
+.kort-rad .h .spar { font-size: 12px; color: var(--lysgronn-700); font-weight: 700; }
+.kort-rad.sum { border-top: 2px solid var(--kant); border-bottom: none; margin-top: 4px; padding-top: 14px; }
+.kort-rad.sum .navn { font-size: 16px; }
+.kort-rad.sum .total { font-size: 22px; }
+.kort-rad.engangs {
+  border-bottom: none;
+  margin-top: 8px;
+  padding: 11px 12px;
+  background: #f1f8e4;
+  border: 1px dashed #c7e29a;
+  border-radius: 8px;
+}
+.kort-rad.engangs .navn { color: var(--lysgronn-700); }
+
+/* ---- Andre alternativer (sammenleggbare) ---- */
+.alt-liste { display: grid; gap: 10px; }
+.alt {
+  border: 1px solid var(--kant);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fafbfd;
+}
+.alt-topp {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.alt-topp:active { background: #eef1f8; }
+.alt-v { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.alt-navn { font-weight: 700; font-size: 16px; color: var(--navy); }
+.alt-h { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+.alt-pris { font-weight: 800; font-size: 17px; color: var(--navy); }
+.alt-pris small { font-size: 12px; font-weight: 600; color: var(--tekst-svak); }
+.alt-h .spar { font-size: 12px; color: var(--lysgronn-700); font-weight: 700; }
+.alt-pil {
+  color: var(--tekst-svak);
+  font-size: 14px;
+  transition: transform .18s;
+  flex: 0 0 auto;
+}
+.alt-topp.apen .alt-pil { transform: rotate(180deg); }
+.alt-innhold { padding: 4px 14px 14px; border-top: 1px solid var(--kant); }
+.alt-innhold .kort-rad:first-child { padding-top: 12px; }
+
+/* ---- Meldinger ---- */
+.melding {
+  background: #fff7e6;
+  border: 1px solid #ffe2a8;
+  color: #8a5d00;
+  padding: 14px 16px;
+  border-radius: var(--rad);
+  font-size: 15px;
+}
+.tom {
+  text-align: center; color: var(--tekst-svak);
+  padding: 28px 16px;
+  background: var(--kort);
+  border: 1px dashed var(--kant);
+  border-radius: var(--rad);
+}
+
+footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--tekst-svak);
+  padding: 4px 16px 8px;
+}
+
+/* ---- Stor CTA: Gi anbefaling ---- */
+.cta {
+  width: 100%;
+  padding: 19px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--gronn) 0%, var(--gronn-700) 100%);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 115, 62, .32);
+  transition: transform .08s, box-shadow .12s, filter .12s;
+}
+.cta:hover { filter: brightness(1.05); }
+.cta:active { transform: translateY(1px); box-shadow: 0 3px 10px rgba(0, 115, 62, .28); }
+
+/* ---- Prisoversikt (intern) ---- */
+.tilbake {
+  border: 1.5px solid var(--kant);
+  background: #fff;
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 11px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+.tilbake:active { background: #eef1f8; }
+.pris-tittel {
+  font-size: 22px;
+  color: var(--navy);
+  margin: 8px 2px 4px;
+}
+.pris-lev .pris-lev-topp h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: var(--navy);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.pris-tabell { width: 100%; border-collapse: collapse; }
+.pris-tabell th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--tekst-svak);
+  padding: 6px 8px;
+  border-bottom: 2px solid var(--kant);
+}
+.pris-tabell td {
+  padding: 11px 5px;
+  border-bottom: 1px solid var(--kant);
+  vertical-align: top;
+}
+.pris-tabell th { padding: 6px 5px; }
+.pris-tabell tr:last-child td { border-bottom: none; }
+.pris-tabell .hoyre { text-align: right; }
+.pris-tabell td.hoyre { font-weight: 800; color: var(--navy); white-space: nowrap; }
+.pris-notat {
+  display: block;
+  font-size: 12px;
+  color: var(--tekst-svak);
+  margin-top: 2px;
+}
+.pris-rabatt {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--kant);
+  font-size: 14px;
+  color: var(--tekst);
+  line-height: 1.5;
+}
+.merke-liten {
+  display: inline-block;
+  background: var(--navy);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  padding: 3px 9px;
+  border-radius: 100px;
+  margin-right: 6px;
+}
+.pris-config { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.7; }
+.pris-config li { margin-bottom: 4px; }
+
+/* ---- Redigerbar prisoversikt ---- */
+.pris-verktoy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 2px 4px;
+}
+.pris-status { font-size: 13px; font-weight: 700; color: var(--tekst-svak); }
+.pris-status:first-letter { color: var(--gronn); }
+.pris-reset {
+  border: 1.5px solid var(--kant);
+  background: #fff;
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 9px 13px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.pris-reset:not(:disabled):active { background: #eef1f8; }
+.pris-reset:disabled { opacity: .45; cursor: default; }
+
+.pris-input {
+  width: 66px;
+  padding: 8px 8px;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+  color: var(--navy);
+  border: 1.5px solid var(--kant);
+  border-radius: 8px;
+  background: #fff;
+}
+.pris-input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13,26,86,.12); }
+.pris-input.endret { border-color: var(--gronn); background: #f1f8e4; }
+.kr-suffiks { font-size: 12px; font-weight: 600; color: var(--tekst-svak); }
+
+.ny-badge {
+  display: inline-block;
+  background: var(--lysgronn);
+  color: var(--navy);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  padding: 2px 6px;
+  border-radius: 100px;
+  vertical-align: middle;
+}
+.fjern-ny {
+  border: none;
+  background: #fbe4e4;
+  color: #b3261e;
+  width: 24px; height: 24px;
+  border-radius: 7px;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.fjern-ny:active { background: #f6cccc; }
+
+.ny-abo-form { display: grid; gap: 9px; }
+.ny-abo-form select,
+.ny-abo-form input:not([type="checkbox"]) {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  border: 1.5px solid var(--kant);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--tekst);
+}
+.ny-abo-sjekk {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tekst);
+  cursor: pointer;
+}
+.ny-abo-sjekk input[type="checkbox"] { width: 18px; height: 18px; flex: none; cursor: pointer; }
+.ny-abo-knapp {
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--navy);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.ny-abo-knapp:active { background: var(--navy-700); }
+.ny-abo-feil { color: #b3261e; font-size: 13px; font-weight: 600; }
+
+/* ---- Avanserte innstillinger (lokal dekning) ---- */
+.meny-avansert { margin-top: 20px; border-top: 1px solid var(--kant); padding-top: 4px; }
+.meny-avansert > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--tekst-svak);
+  padding: 10px 18px 10px 0;
+  position: relative;
+}
+.meny-avansert > summary::-webkit-details-marker { display: none; }
+.meny-avansert > summary::after {
+  content: "▾";
+  position: absolute;
+  right: 2px;
+  transition: transform .15s;
+}
+.meny-avansert[open] > summary::after { transform: rotate(180deg); }
+.meny-undertittel { font-size: 13px; font-weight: 700; color: var(--tekst); margin: 4px 0 10px; }
+.meny-undertittel-2 { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--kant); }
+.dekning-rad { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.dekning-navn { width: 56px; flex: none; color: var(--tekst); font-weight: 600; font-size: 13px; }
+.dekning-slider { flex: 1; min-width: 0; accent-color: var(--navy); cursor: pointer; }
+.dekning-verdi { width: 26px; flex: none; text-align: right; color: var(--navy); font-weight: 800; font-size: 13px; }
+.meny-nullstill {
+  margin-top: 4px;
+  width: 100%;
+  padding: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid var(--kant);
+  background: #fff;
+  color: var(--navy);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.meny-nullstill:hover:not(:disabled) { background: #eef1f8; }
+.meny-nullstill:disabled { opacity: .45; cursor: default; }
+
+/* ---- Kundeprioritet (nivåvelgere) ---- */
+.prioritet-panel {
+  border: 1px solid var(--kant);
+  border-radius: var(--rad);
+  background: #fff;
+}
+.prioritet-panel > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 36px 12px 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.prioritet-panel > summary::-webkit-details-marker { display: none; }
+.prioritet-panel > summary::after {
+  content: "▾";
+  position: absolute;
+  right: 14px;
+  top: 13px;
+  color: var(--tekst-svak);
+  transition: transform .15s;
+}
+.prioritet-panel[open] > summary::after { transform: rotate(180deg); }
+.prioritet-panel[open] > summary { border-bottom: 1px solid var(--kant); }
+.prioritet-tittel { font-weight: 600; color: var(--tekst); font-size: 14px; }
+.prioritet-sammendrag { font-size: 12px; color: var(--tekst-svak); }
+.prioritet-rader { padding: 14px; display: flex; flex-direction: column; gap: 13px; }
+.prioritet-rad { display: flex; flex-direction: column; gap: 6px; }
+.prioritet-navn { font-size: 13px; font-weight: 600; color: var(--tekst); }
+.prioritet-niva { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.prioritet-niva button {
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--kant);
+  background: #fff;
+  color: var(--tekst-svak);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.prioritet-niva button:hover { border-color: var(--navy); }
+.prioritet-niva button.aktiv {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+/* ---- Velg tilbud (knapp + kode-vindu) ---- */
+.cta-tilbud {
+  margin-top: 14px;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-700) 100%);
+}
+.cta-tilbud:active { box-shadow: 0 3px 10px rgba(13, 26, 86, .28); }
+.cta-tilbud-alt {
+  margin-top: 12px;
+  padding: 12px;
+  font-size: 15px;
+}
+
+.tilbud-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+}
+.tilbud-intro {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--tekst-svak);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.tilbud-peak {
+  background: #fff4d6;
+  color: #8a5a00;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.tilbud-binding-varsel {
+  background: #fde8e6;
+  color: #8a1c12;
+  border: 1px solid #f4c2bc;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.tilbud-mangler-varsel {
+  background: #fff4d6;
+  color: #8a5a00;
+  border: 1px solid #f0d68a;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.tilbud-rader { display: flex; flex-direction: column; gap: 8px; }
+.tilbud-rad {
+  border: 1px solid var(--kant);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.tilbud-rad-topp {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.tilbud-person {
+  font-weight: 800; color: var(--navy); font-size: 13px;
+}
+.tilbud-plan { font-weight: 600; font-size: 14px; }
+.tilbud-binding {
+  margin-left: auto;
+  font-size: 11px; font-weight: 700;
+  color: var(--tekst-svak);
+  background: #eef1f8;
+  padding: 2px 8px; border-radius: 20px;
+}
+.tilbud-koder { display: flex; flex-wrap: wrap; gap: 6px; }
+.kode-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 7px;
+  padding: 4px 9px;
+  font-size: 13px;
+}
+.kode-chip code {
+  font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  font-weight: 700; letter-spacing: .3px;
+}
+.kode-chip.hoved { background: #e7f3ec; color: var(--gronn-700); }
+.kode-chip.ekstra { background: #fff4d6; color: #8a5a00; }
+.kode-chip.mangler { background: #fde8e6; color: #b3261e; }
+
+.tilbud-samlet {
+  margin-top: 14px;
+  border-top: 1px solid var(--kant);
+  padding-top: 12px;
+}
+.tilbud-samlet h3 { margin: 0 0 8px; font-size: 14px; color: var(--navy); }
+.kode-kopier {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; padding: 0; margin: 0;
+  color: inherit; cursor: pointer; opacity: .6; line-height: 0;
+  flex: none;
+}
+.kode-kopier:hover { opacity: 1; }
+.kode-kopier.kopiert { color: var(--gronn); opacity: 1; }
+.tilbud-samlet-liste { list-style: none; margin: 0; padding: 0; }
+.tilbud-samlet-liste .kode-kopier { color: var(--tekst-svak); }
+.tilbud-samlet-liste .kode-kopier.kopiert { color: var(--gronn); }
+.tilbud-samlet-liste li {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--kant);
+  font-size: 13px;
+}
+.tilbud-samlet-liste li:last-child { border-bottom: none; }
+.tilbud-samlet-liste code {
+  font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  font-weight: 700; color: var(--navy);
+}
+.tilbud-samlet-liste .antall {
+  font-weight: 800; color: var(--gronn-700); font-size: 12px;
+}
+.tilbud-samlet-liste .kode-tekst {
+  margin-left: auto; color: var(--tekst-svak); font-size: 12px; text-align: right;
+}

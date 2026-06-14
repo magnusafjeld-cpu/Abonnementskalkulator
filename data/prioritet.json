@@ -1,0 +1,26 @@
+{
+  "_kommentar": "INTERN vekting. IKKE i bruk ennå - anbefalingen rangeres foreløpig kun etter hva som er best for kunden (datadekning + pris). Skru på senere med CONFIG.bruk_prioritet=true i kalkulator.js. Høyere tall = foretrekkes blant likeverdige. Koden antar aldri hva tallet betyr. Mangler en id, brukes nøytral 1.0. Bytt ut dummy-verdiene selv.",
+  "_skala_hint": "Eksempelskala 0.5-2.0, men koden krever ingen bestemt skala.",
+  "prioritet": {
+    "telenor_fast_5": 1.0,
+    "telenor_ubegrenset_enkel": 1.2,
+    "telenor_ubegrenset_normal": 1.3,
+    "telenor_ubegrenset_maks": 1.1,
+    "telenor_sikre_mobil": 1.2,
+
+    "telia_5": 1.1,
+    "telia_10": 1.4,
+    "telia_x_start": 1.2,
+    "telia_x_basis": 1.3,
+    "telia_x_max": 1.2,
+    "telia_x_ung": 1.3,
+    "telia_ung_10": 1.1,
+    "telia_junior_10": 1.0,
+    "telia_junior_1": 1.0,
+
+    "ice_5": 1.0,
+    "ice_18": 1.3,
+    "ice_max": 1.4,
+    "ice_max_netflix": 1.2
+  }
+}

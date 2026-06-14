@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Abonnementskalkulator – Elkjøp Telecom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=34" />
+</head>
+<body>
+  <header>
+    <button type="button" id="menyKnapp" class="meny-knapp" aria-label="Meny" aria-expanded="false">
+      <span class="hamburger"></span>
+    </button>
+    <button type="button" id="logoKnapp" class="logo" title="Åpne prisoversikt" aria-label="Åpne prisoversikt">
+      <img src="assets/elkjop-logo.svg" alt="Elkjøp" />
+    </button>
+    <div class="header-tittel">
+      <div class="t">Abonnementskalkulator</div>
+      <div class="sub">Telenor · Telia · ice</div>
+    </div>
+
+    <div id="meny" class="meny-panel" hidden>
+      <div class="meny-tittel">Produktrabatt (engangs)</div>
+      <label class="toggle-rad">
+        <input type="checkbox" id="rabatt500" checked />
+        <span class="toggle-slider"></span>
+        <span class="toggle-tekst">500 kr per Telia X</span>
+      </label>
+      <label class="toggle-rad">
+        <input type="checkbox" id="rabatt1000" />
+        <span class="toggle-slider"></span>
+        <span class="toggle-tekst">1000 kr per Telia X</span>
+      </label>
+
+      <div class="meny-tittel meny-tittel-2">Kundepreferanse</div>
+      <select id="prefOperator" class="meny-select">
+        <option value="">Ingen preferanse</option>
+        <option value="Telenor">Telenor</option>
+        <option value="Telia">Telia</option>
+        <option value="ice">ice</option>
+      </select>
+      <div class="seg disabled" id="prefModus" role="group" aria-label="Preferanse-styrke">
+        <button type="button" class="seg-btn aktiv" data-modus="foretrekk">Foretrekk</button>
+        <button type="button" class="seg-btn" data-modus="krev">Krev</button>
+      </div>
+      <div class="meny-hint" id="prefHint">Velg operatør for å aktivere.</div>
+
+      <div class="meny-tittel meny-tittel-2">Innstillinger</div>
+      <label class="toggle-rad">
+        <input type="checkbox" id="visPrioritet" checked />
+        <span class="toggle-slider"></span>
+        <span class="toggle-tekst">Kundepreferanser utover pris (dekning/sikkerhet)</span>
+      </label>
+      <label class="toggle-rad">
+        <input type="checkbox" id="noyaktigData" />
+        <span class="toggle-slider"></span>
+        <span class="toggle-tekst">Nøyaktig datamengde (skriv inn GB)</span>
+      </label>
+
+      <details class="meny-avansert">
+        <summary>Avanserte innstillinger</summary>
+        <div class="meny-avansert-innhold">
+          <label class="toggle-rad">
+            <input type="checkbox" id="ekskluderDagens" />
+            <span class="toggle-slider"></span>
+            <span class="toggle-tekst">Ekskluder dagens operatør</span>
+          </label>
+
+          <div class="meny-undertittel meny-undertittel-2">Lokal dekning</div>
+          <div id="dekningRader"></div>
+          <button type="button" id="nullstillDekning" class="meny-nullstill">Nullstill til standard</button>
+          <p class="meny-hint">Juster når lokal dekning avviker fra landssnittet. Påvirker anbefalingen.</p>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- STEG 1: INPUT -->
+    <div id="inputVisning">
+      <section class="panel">
+        <div class="panel-topp">
+          <h2>Kundens situasjon i dag</h2>
+          <button type="button" id="nyKundeKnapp" class="ny-kunde" title="Tøm alle felt for ny kunde">↺ Ny kunde</button>
+        </div>
+
+        <div class="felt">
+          <label for="leverandor">Dagens leverandør</label>
+          <select id="leverandor"></select>
+        </div>
+
+        <div class="felt">
+          <label for="dagensPris">Dagens månedspris (totalt for alle, kr)</label>
+          <div class="pris-felt">
+            <input type="number" id="dagensPris" inputmode="numeric" placeholder="F.eks. 599" min="0" />
+            <button type="button" id="kalkKnapp" class="kalk-aapne" aria-label="Åpne kalkulator" title="Åpne kalkulator">🧮</button>
+          </div>
+        </div>
+
+        <div class="felt" id="prioritetFelt">
+          <details id="prioritetPanel" class="prioritet-panel">
+            <summary>
+              <span class="prioritet-tittel">Hva er viktigst for kunden?</span>
+              <span id="prioritetSammendrag" class="prioritet-sammendrag"></span>
+            </summary>
+            <div id="prioritetRader" class="prioritet-rader"></div>
+          </details>
+        </div>
+
+        <div class="felt">
+          <label>Personer i husstanden</label>
+          <div id="brukere"></div>
+          <button type="button" id="leggTil" class="legg-til">+ Legg til person</button>
+        </div>
+
+      </section>
+
+      <button type="button" id="anbefalKnapp" class="cta">Gi anbefaling →</button>
+    </div>
+
+    <!-- STEG 2: RESULTAT -->
+    <div id="resultatVisning" hidden>
+      <button type="button" id="endreKnapp" class="tilbake">← Endre kundeinfo</button>
+      <section id="resultat">
+        <div class="tom">Fyll inn kundens situasjon for å se anbefaling.</div>
+      </section>
+      <footer>Intern vekting brukes til rangering og vises ikke i kundevisning.</footer>
+    </div>
+
+    <!-- PRISOVERSIKT (intern) -->
+    <div id="prisVisning" hidden>
+      <button type="button" id="tilbakeKnapp" class="tilbake">← Tilbake</button>
+      <div id="prisInnhold"></div>
+      <footer>Versjon 1.0 · Laget av Magnus Fjeld</footer>
+    </div>
+  </div>
+
+  <!-- Enkel kalkulator (for dagens pris) -->
+  <div id="kalkOverlay" class="kalk-overlay" hidden>
+    <div class="kalk-modal" role="dialog" aria-label="Kalkulator">
+      <div class="kalk-topp">
+        <span>Kalkulator</span>
+        <button type="button" id="kalkLukk" class="kalk-lukk" aria-label="Lukk">✕</button>
+      </div>
+      <div class="kalk-display" id="kalkDisplay">0</div>
+      <div class="kalk-tastatur" id="kalkTast">
+        <button type="button" class="kalk-knapp kalk-fn" data-k="C">C</button>
+        <button type="button" class="kalk-knapp kalk-fn" data-k="back">⌫</button>
+        <button type="button" class="kalk-knapp kalk-op" data-k="/">÷</button>
+        <button type="button" class="kalk-knapp kalk-op" data-k="*">×</button>
+        <button type="button" class="kalk-knapp" data-k="7">7</button>
+        <button type="button" class="kalk-knapp" data-k="8">8</button>
+        <button type="button" class="kalk-knapp" data-k="9">9</button>
+        <button type="button" class="kalk-knapp kalk-op" data-k="-">−</button>
+        <button type="button" class="kalk-knapp" data-k="4">4</button>
+        <button type="button" class="kalk-knapp" data-k="5">5</button>
+        <button type="button" class="kalk-knapp" data-k="6">6</button>
+        <button type="button" class="kalk-knapp kalk-op" data-k="+">+</button>
+        <button type="button" class="kalk-knapp" data-k="1">1</button>
+        <button type="button" class="kalk-knapp" data-k="2">2</button>
+        <button type="button" class="kalk-knapp" data-k="3">3</button>
+        <button type="button" class="kalk-knapp kalk-eq" data-k="=">=</button>
+        <button type="button" class="kalk-knapp kalk-null" data-k="0">0</button>
+        <button type="button" class="kalk-knapp" data-k=".">.</button>
+      </div>
+      <button type="button" id="kalkBruk" class="kalk-bruk">Bruk i dagens pris</button>
+    </div>
+  </div>
+
+  <!-- Tilbud / koder for salgssystemet -->
+  <div id="tilbudOverlay" class="kalk-overlay" hidden>
+    <div class="tilbud-modal" role="dialog" aria-label="Velg tilbud – koder">
+      <div class="kalk-topp">
+        <span>Tilbud – koder til Blueberry</span>
+        <button type="button" id="tilbudLukk" class="kalk-lukk" aria-label="Lukk">✕</button>
+      </div>
+      <div id="tilbudInnhold"></div>
+    </div>
+  </div>
+
+  <script src="kalkulator.js?v=38"></script>
+  <script src="app.js?v=54"></script>
+</body>
+</html>
