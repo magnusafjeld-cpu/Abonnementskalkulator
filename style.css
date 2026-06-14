@@ -727,10 +727,19 @@ footer {
   color: var(--tekst-svak);
   padding: 4px 16px 8px;
 }
-.footer-bytt { display: inline-block; }
-.footer-bytt .footer-hover { display: none; }
-.footer-bytt.vis-takk .footer-standard { display: none; }
-.footer-bytt.vis-takk .footer-hover { display: inline; }
+/* Standard-teksten (bredest) definerer alltid boksbredden, så hitboksen ikke
+   krymper og glitcher når man bytter til den smalere Tobias-teksten. */
+.footer-bytt { display: inline-block; position: relative; }
+.footer-bytt .footer-hover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  text-align: center;
+  opacity: 0;
+}
+.footer-bytt:hover .footer-standard { opacity: 0; }
+.footer-bytt:hover .footer-hover { opacity: 1; }
 
 /* ---- Stor CTA: Gi anbefaling ---- */
 .cta {
