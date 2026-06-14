@@ -729,8 +729,8 @@ footer {
 }
 .footer-bytt { display: inline-block; }
 .footer-bytt .footer-hover { display: none; }
-.footer-bytt:hover .footer-standard { display: none; }
-.footer-bytt:hover .footer-hover { display: inline; }
+.footer-bytt.vis-takk .footer-standard { display: none; }
+.footer-bytt.vis-takk .footer-hover { display: inline; }
 
 /* ---- Stor CTA: Gi anbefaling ---- */
 .cta {

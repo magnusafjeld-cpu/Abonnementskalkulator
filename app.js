@@ -1016,6 +1016,21 @@ async function start() {
     oppdater();
   });
 
+  // Footer: bytt til «Takk til Tobias» ved hover, og bli værende 0,5 sek etter
+  // at musepekeren forlater teksten.
+  const footerBytt = document.querySelector(".footer-bytt");
+  if (footerBytt) {
+    let footerTimer;
+    footerBytt.addEventListener("mouseenter", () => {
+      clearTimeout(footerTimer);
+      footerBytt.classList.add("vis-takk");
+    });
+    footerBytt.addEventListener("mouseleave", () => {
+      clearTimeout(footerTimer);
+      footerTimer = setTimeout(() => footerBytt.classList.remove("vis-takk"), 500);
+    });
+  }
+
   // Ekskluder dagens operatør (avanserte innstillinger).
   const ekskluderDagens = document.getElementById("ekskluderDagens");
   ekskluderDagens.addEventListener("change", () => {
