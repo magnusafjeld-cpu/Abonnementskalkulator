@@ -630,7 +630,12 @@ function familierabattTekst(leverandor) {
   }
   if (r.modell === "familiemedlem_fastpris") {
     const mp = r.medlemspris || {};
-    return `Ingen samlet familierabatt – prisen fordeles per person. Hovedabonnent betaler full pris. Hvert ekstra medlem på ubegrenset får en lavere fast medlemspris (ekstra billig for yngre): ${mp.voksen} kr (voksen), ${mp.under_30} kr (under 30), ${mp.under_13} kr (under 13). Medlemmer med fastdata betaler egen pris.`;
+    const ledd = [
+      mp.voksen != null ? `${mp.voksen} kr (voksen)` : null,
+      mp.under_30 != null ? `${mp.under_30} kr (under 30)` : null,
+      mp.under_13 != null ? `${mp.under_13} kr (under 13)` : null,
+    ].filter(Boolean).join(", ");
+    return `Ingen samlet familierabatt – prisen fordeles per person. Hovedabonnent betaler full pris. Hvert ekstra medlem på ubegrenset får en lavere fast medlemspris (ekstra billig for yngre): ${ledd}. På Sikre betaler under 13 kun 249 kr. Medlemmer med fastdata betaler egen pris.`;
   }
   if (r.modell === "dyreste_full_plantype") {
     return `Dyreste SIM betaler full pris. Øvrige: −${r.rabatt_kr_ubegrenset} kr på ubegrenset, −${r.rabatt_kr_ovrige} kr på fastdata/junior. Maks ${r.maks_antall_med_rabatt} SIM med rabatt. Kombineres med aldersrabatt.`;
