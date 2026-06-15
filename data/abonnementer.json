@@ -22,7 +22,7 @@
   },
   "_score_note": "Dekning og sikkerhet pr. operatør (0-100), brukt i den vektede totalscoren. Dekning følger målt ytelse (Rohde & Schwarz benchmark nov-des 2025: Telia 830, Telenor 778, ice 769 – Telia ≈ Telenor klart foran ice). Sikkerhet_basis: Telia har den beste innebygde sikkerheten av standardabonnementene (Svindelsperre/Nettvakt/Nettslett), så Telenor (Nettvern+) og ice (Svindelbeskyttelse). KUN Telenor Sikre Mobil ('Sikre' = abo med ekstra sikkerhetspakke) overstiger Telia – via feltet 'sikkerhet' = 100 på selve planen. Ingen andre standardplaner skal ligge over Telia.",
   "score": {
-    "dekning":         { "Telenor": 95, "Telia": 100, "ice": 72 },
+    "dekning":         { "Telenor": 100, "Telia": 100, "ice": 72 },
     "sikkerhet_basis": { "Telenor": 45, "Telia": 60, "ice": 35 }
   },
   "_utmerkelser_note": "Utmerkelser/priser som vises på anbefalingskortet for en operatør. 'url' (valgfri) gjør utmerkelsen til en lenke til kilden/testen.",
