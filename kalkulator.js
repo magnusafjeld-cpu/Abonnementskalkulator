@@ -869,12 +869,31 @@ function byggTilbudskoder(brukerPlaner) {
   let teliaXTeller = 0;
   let sikreKodeLagt = false; // Sikkerhetssenter-koder legges kun én gang per kunde.
 
+  // Familiefordelte priser (Telenor-modellen) – brukes til å avgjøre om en U13 på
+  // Sikre faktisk mottar U13-familieprisen (249) og dermed skal ha egen salgskode.
+  const lev = brukerPlaner.length ? brukerPlaner[0].plan.leverandor : null;
+  const famRegel = FAMILIERABATT[lev];
+  const medlemspriser =
+    famRegel && famRegel.modell === "familiemedlem_fastpris"
+      ? medlemsprisFordeling(brukerPlaner, famRegel)
+      : null;
+
   const rader = brukerPlaner.map((v, i) => {
     const id = v.plan.id;
-    const def = SALGSKODER[id] || null;
+    let def = SALGSKODER[id] || null;
+    // U13 på Sikre Mobil som mottar familieprisen (U13-rabatt) får egen salgskode.
+    const u13SikreRabatt =
+      id === "telenor_sikre_mobil" &&
+      v.alder != null && v.alder < 13 &&
+      medlemspriser && famRegel &&
+      medlemspriser[i] === medlemsprisForAlder(v.alder, famRegel.medlemspris || {}, v.plan);
+    if (u13SikreRabatt && SALGSKODER.telenor_sikre_mobil_u13) {
+      def = SALGSKODER.telenor_sikre_mobil_u13;
+    }
+    const navnVis = u13SikreRabatt ? v.plan.navn + " (U13)" : v.plan.navn;
     const koder = def
-      ? [{ kode: def.kode, tekst: v.plan.navn, type: "hoved" }]
-      : [{ kode: "(mangler kode)", tekst: v.plan.navn, type: "mangler" }];
+      ? [{ kode: def.kode, tekst: navnVis, type: "hoved" }]
+      : [{ kode: "(mangler kode)", tekst: navnVis, type: "mangler" }];
 
     // ICE familieprovisjon – pr. abo når >=2 ice-salg.
     if (v.plan.leverandor === "ice" && iceFamilieAktiv) {

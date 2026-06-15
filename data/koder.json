@@ -8,6 +8,7 @@
     "telenor_ubegrenset_normal": { "kode": "TNUBEGNORMAL", "binding": "Uten binding" },
     "telenor_ubegrenset_maks":   { "kode": "TNUBEGMAKS",   "binding": "Uten binding" },
     "telenor_sikre_mobil":       { "kode": "TNSIKREUTS",   "binding": "Uten binding" },
+    "telenor_sikre_mobil_u13":   { "kode": "TNSIKREU13",   "binding": "Uten binding" },
 
     "ice_5":          { "kode": "SICELAN5GB",  "binding": "Uten binding" },
     "ice_ung_5":      { "kode": "SICEUNG5GB",  "binding": "Uten binding" },
