@@ -311,6 +311,11 @@ header .sub { font-size: 12px; opacity: .8; letter-spacing: .3px; }
   width: 100%;
   max-width: 320px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+  /* Hold modalen innenfor skjermen og la den scrolle på lave skjermer
+     (f.eks. mobil i liggende modus), ellers kuttes knappene utilgjengelig. */
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .kalk-topp {
   display: flex;
