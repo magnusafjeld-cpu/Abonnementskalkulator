@@ -844,9 +844,14 @@ function aapnePris() {
 let kalkAkk = null; // akkumulert verdi
 let kalkOp = null; // ventende operator
 let kalkNyttTall = true; // neste siffer starter et nytt tall
-let kalkDisp = "0"; // det som vises
+let kalkDisp = "0"; // det som vises (gjeldende tall / resultat)
+let kalkUttrykk = ""; // regnestykket så langt, f.eks. "300 + 200 + "
+let kalkEtterLik = false; // sist trykk var «=»
+
+const KALK_SYM = { "+": "+", "-": "−", "*": "×", "/": "÷" };
 
 function kalkVisning() {
+  document.getElementById("kalkUttrykk").textContent = kalkUttrykk;
   document.getElementById("kalkDisplay").textContent = kalkDisp;
 }
 function kalkAnvend(op, a, b) {
@@ -860,9 +865,11 @@ function kalkAnvend(op, a, b) {
 }
 function kalkTast(k) {
   if (/^[0-9]$/.test(k)) {
+    if (kalkEtterLik) { kalkUttrykk = ""; kalkAkk = null; kalkOp = null; kalkEtterLik = false; }
     kalkDisp = kalkNyttTall || kalkDisp === "0" ? k : kalkDisp + k;
     kalkNyttTall = false;
   } else if (k === ".") {
+    if (kalkEtterLik) { kalkUttrykk = ""; kalkAkk = null; kalkOp = null; kalkEtterLik = false; }
     if (kalkNyttTall) {
       kalkDisp = "0.";
       kalkNyttTall = false;
@@ -871,24 +878,41 @@ function kalkTast(k) {
     }
   } else if (k === "C") {
     kalkAkk = null; kalkOp = null; kalkNyttTall = true; kalkDisp = "0";
+    kalkUttrykk = ""; kalkEtterLik = false;
   } else if (k === "back") {
     if (!kalkNyttTall) {
       kalkDisp = kalkDisp.length > 1 ? kalkDisp.slice(0, -1) : "0";
       if (kalkDisp === "" || kalkDisp === "-") kalkDisp = "0";
     }
   } else if (k === "+" || k === "-" || k === "*" || k === "/") {
-    const tall = parseFloat(kalkDisp) || 0;
-    if (kalkOp !== null && !kalkNyttTall) {
-      kalkAkk = kalkAnvend(kalkOp, kalkAkk, tall);
-      kalkDisp = String(kalkAkk);
+    const sym = KALK_SYM[k];
+    const visTall = kalkDisp;
+    if (kalkEtterLik) {
+      // Fortsett å regne videre fra resultatet.
+      kalkUttrykk = visTall + " " + sym + " ";
+      kalkAkk = parseFloat(kalkDisp) || 0;
+      kalkOp = k; kalkNyttTall = true; kalkEtterLik = false;
+    } else if (kalkNyttTall && kalkUttrykk) {
+      // To operatorer på rad: bytt bare ut den siste operatoren.
+      kalkUttrykk = kalkUttrykk.replace(/[+−×÷]\s*$/, sym + " ");
+      kalkOp = k;
     } else {
-      kalkAkk = tall;
+      const tall = parseFloat(kalkDisp) || 0;
+      if (kalkOp !== null && !kalkNyttTall) {
+        kalkAkk = kalkAnvend(kalkOp, kalkAkk, tall);
+        kalkDisp = String(kalkAkk);
+      } else {
+        kalkAkk = tall;
+      }
+      kalkUttrykk += visTall + " " + sym + " ";
+      kalkOp = k;
+      kalkNyttTall = true;
     }
-    kalkOp = k;
-    kalkNyttTall = true;
   } else if (k === "=") {
+    const visTall = kalkDisp;
     const tall = parseFloat(kalkDisp) || 0;
     if (kalkOp !== null) {
+      kalkUttrykk = kalkUttrykk + visTall + " =";
       kalkAkk = kalkAnvend(kalkOp, kalkAkk, tall);
       kalkDisp = String(kalkAkk);
       kalkOp = null;
@@ -896,6 +920,7 @@ function kalkTast(k) {
       kalkAkk = tall;
     }
     kalkNyttTall = true;
+    kalkEtterLik = true;
   }
   kalkVisning();
 }
