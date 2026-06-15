@@ -58,7 +58,7 @@ const DATA_VALG = {
 // Hastighetskrav -> minimum Mbit planen må levere. Standard = "vanlig".
 const HASTIGHET_VALG = {
   vanlig:  { label: "Vanlig",  min_mbit: 0 },
-  rask:    { label: "Rask",    min_mbit: 250 },
+  rask:    { label: "Rask",    min_mbit: 200 },
   lynrask: { label: "Lynrask", min_mbit: 1000 },
 };
 
