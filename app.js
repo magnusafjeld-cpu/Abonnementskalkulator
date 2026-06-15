@@ -9,6 +9,16 @@ function nyBruker() {
   return { alderValg: "voksen", data: "fri", hastighet: "vanlig", dataGb: 15 };
 }
 
+// Escaper tekst som settes inn via innerHTML (f.eks. egendefinerte abonnements-
+// navn fra selgeren), så spesialtegn (< > & ") ikke bryter eller injiserer HTML.
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 const state = {
   // Når på: skriv inn nøyaktig databehov i GB per person (i stedet for kategori).
   noyaktigData: false,
@@ -777,7 +787,7 @@ function renderPrisoversikt() {
 // Leser «legg til»-skjemaet, validerer og legger til et nytt abonnement.
 function haandterLeggTilAbo() {
   const lev = document.getElementById("nyLev").value;
-  const navn = document.getElementById("nyNavn").value.trim();
+  const navn = escapeHtml(document.getElementById("nyNavn").value.trim());
   const type = document.getElementById("nyType").value;
   const gb = Number(document.getElementById("nyGb").value);
   const hast = Number(document.getElementById("nyHast").value) || 1000;
