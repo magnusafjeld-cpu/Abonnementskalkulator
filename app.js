@@ -79,9 +79,10 @@ const MERKE_DEFAULT = { bg1: "#00733e", bg2: "#015e33", accent: "#89bb33", merke
 
 // Kundeprioritet: hver dimensjon får et nivå (indeks i NIVAER). Nivå -> poeng,
 // poeng normaliseres til vekter for den vektede totalscoren. "Svært høy" teller
-// klart mest; "Lav" er en bunnvekt (pris beholder alltid vekt).
+// klart mest; "Lav" = 0 poeng = teller ikke (dimensjonen påvirker ikke valget).
+// Er alt satt til Lav, faller vi tilbake til ren pris (se prioritetTilVekter).
 const NIVAER = [
-  { label: "Lav", poeng: 1 },
+  { label: "Lav", poeng: 0 },
   { label: "Middels", poeng: 3 },
   { label: "Høy", poeng: 6 },
   { label: "Svært høy", poeng: 10 },
@@ -284,12 +285,18 @@ function prioritetTilVekter() {
   const poeng = (dim) => NIVAER[state.prioritet[dim]].poeng;
   const sum = poeng("pris") + poeng("dekning") + poeng("sikkerhet");
   const maksPoeng = NIVAER[NIVAER.length - 1].poeng;
+  // Alt satt til Lav (sum 0) -> ren pris, så vi ikke deler på 0 og slik at
+  // «ingenting er viktig» gir billigste alternativ.
+  const vekter =
+    sum > 0
+      ? {
+          pris: poeng("pris") / sum,
+          dekning: poeng("dekning") / sum,
+          sikkerhet: poeng("sikkerhet") / sum,
+        }
+      : { pris: 1, dekning: 0, sikkerhet: 0 };
   return {
-    vekter: {
-      pris: poeng("pris") / sum,
-      dekning: poeng("dekning") / sum,
-      sikkerhet: poeng("sikkerhet") / sum,
-    },
+    vekter,
     sikkerhetViktig: state.prioritet.sikkerhet >= SIKKERHET_VIKTIG_FRA,
     // Absolutt sikkerhetsnivå (0-1), uavhengig av de andre dimensjonene. Styrer
     // sikkerhetsbudsjettet i kalkulatoren (Svært høy = 1.0 = fullt budsjett).

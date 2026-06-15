@@ -792,7 +792,11 @@ function beregnHusstand(brukere, dagensTotal, preferanse, produktrabattKr, prior
       (vekt.sikkerhet || 0) * lev.sikkerhet;
   });
 
-  dekkende = dekkende.slice().sort((a, b) => b.vektetScore - a.vektetScore);
+  // Sorter på vektet score; ved lik score (f.eks. dekning prioritert og to
+  // operatører har samme dekning) vinner den billigste effektive prisen.
+  dekkende = dekkende
+    .slice()
+    .sort((a, b) => b.vektetScore - a.vektetScore || a.effektivPris - b.effektivPris);
 
   // Anbefalt: høyest vektet score innenfor det dynamiske pristaket.
   const innenforTak = (lev) => lev.effektivPris <= capEffektiv;
