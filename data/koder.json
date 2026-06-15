@@ -1,11 +1,10 @@
 {
   "_kommentar": "Salgssystem-koder pr. abonnement + ekstrakoder. Kilde: Provisjonsliste (ICE/Telenor/Telia/Ekstrakoder Telecom). 'binding' beskriver hvordan abonnementet selges i dag (kan endres). ice + Telenor selges uten binding; Telia X selges med tilbehørsbinding; Telia Ung/Junior selges uten binding (egen 'uten avtaletid'-kode).",
-  "_ekstrakode_logikk": "ice-familie: legges pr. ice-abo når det er >=2 ice-salg (peak: SPK26ICEFAM 500,-, ellers SICEFAMILIE 300,-). Telia X under Sommerpeak: SPK26TEXTILB pr. Telia X-abo (peaksupport tilbehørsbinding) + SPK26TEFAM familie fra og med Telia X-abo nr. 2. Telenor Sikre: TNSIKKERHET (Telenor Sikkerhetssenter) legges pr. Sikre-abo; under Sommerpeak også SPK26TNSIKK (Ekstrastøtte på sikkerhetssenteret) i tillegg. Junior/Ung og ikke-X Telia får ingen ekstrakoder.",
+  "_ekstrakode_logikk": "ice-familie: legges pr. ice-abo når det er >=2 ice-salg (peak: SPK26ICEFAM 500,-, ellers SICEFAMILIE 300,-). Telia X under Sommerpeak: SPK26TEXTILB pr. Telia X-abo (peaksupport tilbehørsbinding) + SPK26TEFAM familie fra og med Telia X-abo nr. 2. Telenor Sikre: TNSIKKERHET (Telenor Sikkerhetssenter) legges KUN ÉN GANG per kunde (uansett antall Sikre-abo); under Sommerpeak også SPK26TNSIKK (Ekstrastøtte på sikkerhetssenteret) én gang i tillegg. Hovedkode for Sikre Mobil er TNSIKREUTS, men en U13-kunde som mottar U13-familieprisen (249) får TNSIKREU13 i stedet. Junior/Ung og ikke-X Telia får ingen ekstrakoder.",
 
   "salgskoder": {
     "telenor_fast_5":            { "kode": "TNFAST5GB",    "binding": "Uten binding" },
     "telenor_ubegrenset_enkel":  { "kode": "TNUBEGENKEL",  "binding": "Uten binding" },
-    "telenor_ubegrenset_normal": { "kode": "TNUBEGNORMAL", "binding": "Uten binding" },
     "telenor_ubegrenset_maks":   { "kode": "TNUBEGMAKS",   "binding": "Uten binding" },
     "telenor_sikre_mobil":       { "kode": "TNSIKREUTS",   "binding": "Uten binding" },
     "telenor_sikre_mobil_u13":   { "kode": "TNSIKREU13",   "binding": "Uten binding" },

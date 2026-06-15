@@ -60,9 +60,15 @@ anbefalte operatøren (merkevare-tilpasset kort + fordeling per person), og unde
 som utvides til å vise sammensetningen (plan per person) hos hver. «← Endre
 kundeinfo» går tilbake. Elkjøp-logoen åpner den interne prisoversikten.
 
-Ved siden av «Dagens månedspris» er det en **kalkulator-knapp** (🧮) som åpner en
+Ved siden av «Dagens månedspris» er det en **kalkulator-knapp** som åpner en
 enkel kalkulator – nyttig for å summere kundens nåværende abonnement (f.eks.
-299 + 399 + 199). «Bruk i dagens pris» setter resultatet inn i feltet.
+299 + 399 + 199). Regnestykket vises i en egen linje over displayet mens du
+taster. «Bruk i dagens pris» setter resultatet inn i feltet.
+
+**↺ Ny kunde** (øverst i kundepanelet) tømmer alle kundespesifikke felt
+(personer, alder/behov, dagens pris og leverandør, kundeprioritet) for å starte
+rent på neste kunde – uten å røre innstillinger som priser, Sommerpeak, lokal
+dekning og burgermeny-valg.
 
 ## Slik virker anbefalingen
 
@@ -76,17 +82,17 @@ Slik kan f.eks. **ice** anbefales med én person på *ice 40 GB* og en annen på
 
 Per person velges planen som:
 1. **dekker databehovet** (lignende/litt høyere data – ikke unødig stor),
-2. **leverer minst valgt hastighet** (Vanlig / Rask ≥250 Mbit / Lynrask ≥1000 Mbit),
+2. **leverer minst valgt hastighet** (Vanlig / Rask ≥200 Mbit / Lynrask ≥1000 Mbit),
 3. er **lovlig for alderen** (junior-/ung-planer har aldersgrense),
 4. har **lavest pris** etter eventuell aldersrabatt.
 
 **Hastighet:** ubegrenset-abonnement finnes i ulike hastigheter (`hastighet_mbit`
 på planen). Hastighetskravet settes **per person** (Vanlig/Rask/Lynrask).
-Krav-nivåene ligger i `HASTIGHET_VALG` (`kalkulator.js`). Telia ubegrenset har
-tre hastighetstrinn: X Start (10 Mbit) → Vanlig, X Basis (250) → Rask, X Max
-(1000) → Lynrask. ice topper på iceMax 200 / iceMax med Netflix 300 Mbit, og
-faller dermed ut på «Lynrask» (krever 1000). Juster `hastighet_mbit` i dataene
-for å treffe deres faktiske lineup.
+Krav-nivåene ligger i `HASTIGHET_VALG` (`kalkulator.js`): Vanlig ≥0, **Rask ≥200**,
+Lynrask ≥1000 Mbit. Telia ubegrenset har tre hastighetstrinn: X Start (10 Mbit) →
+Vanlig, X Basis (250) → Rask, X Max (1000) → Lynrask. ice topper på iceMax 200 /
+iceMax med Netflix 300 Mbit – dekker dermed «Rask», men faller ut på «Lynrask»
+(krever 1000). Juster `hastighet_mbit` i dataene for å treffe deres faktiske lineup.
 
 `bruk_prioritet: true` er reservert for senere – da kan intern vekting
 (`prioritet.json`) påvirke planvalget når flere er omtrent like gode.
@@ -116,8 +122,8 @@ anbefalingen finner billigste plan som dekker minst det antallet GB.
 
 **Aldersgrupper** velges som dropdown (ikke nøyaktig alder) i `ALDER_VALG`
 øverst i `kalkulator.js` – kun gruppen som utløser rabatt/eligibilitet trengs:
-`30+ år`, `Under 30`, `Under 16`. Hver mapper til en representativ alder som
-logikken bruker mot `alder_maks` og `alder_rabatt`.
+`30+ år`, `Under 30`, `Under 16`, `Under 13`. Hver mapper til en representativ
+alder (40 / 25 / 14 / 10) som logikken bruker mot `alder_maks` og `alder_rabatt`.
 
 ## Oppdatere priser månedlig
 
@@ -143,7 +149,7 @@ har sin egen modell (de er reelt forskjellige):
 ```json
 "familierabatt": {
   "Telenor": { "modell": "familiemedlem_fastpris", "gjelder_kun_ubegrenset": true,
-               "medlemspris": { "voksen": 499, "under_30": 399, "under_13": 249 } },
+               "medlemspris": { "voksen": 499, "under_30": 399 } },
   "Telia":   { "modell": "dyreste_full_plantype", "rabatt_kr_ubegrenset": 100, "rabatt_kr_ovrige": 30, "maks_antall_med_rabatt": 7 },
   "ice":     null
 }
@@ -152,10 +158,11 @@ har sin egen modell (de er reelt forskjellige):
 - **`familiemedlem_fastpris` (Telenor):** *ikke en samlet familierabatt, men en
   prisfordeling per person.* Hovedabonnent (dyreste kvalifiserte) betaler full
   pris, hvert ekstra medlem på ubegrenset får en **lavere fast medlemspris etter
-  alder** (voksen 499 / under 30: 399 / under 13: 249 – ekstra billig for yngre).
-  I fordelingen per person vises den faktiske, lavere personprisen (merket
-  «medlemspris»), ikke en egen rabattlinje. Gjelder kun ubegrenset. Medlemmer med
-  fastdata betaler egen pris.
+  alder** (voksen 499 / under 30: 399). En **under 13** faller tilbake på
+  voksenprisen (499) med mindre planen har et eget `familie_medlemspris`-felt –
+  f.eks. **Sikre Mobil** der under 13 betaler **249**. I fordelingen per person
+  vises den faktiske, lavere personprisen (merket «medlemspris»), ikke en egen
+  rabattlinje. Gjelder kun ubegrenset. Medlemmer med fastdata betaler egen pris.
 - **`dyreste_full_plantype` (Telia):** dyreste SIM full pris, øvrige får rabatt
   etter plantype (`rabatt_kr_ubegrenset` / `rabatt_kr_ovrige`), maks
   `maks_antall_med_rabatt` SIM. Kombineres med aldersrabatt.
@@ -175,7 +182,7 @@ med per leverandør (vises som ekstra verdi i kundevisning og prisoversikten):
 "inkludert": {
   "Telenor": ["Nettvern+"],
   "Telia": ["Svindelsperre", "Nettvakt", "Nettslett"],
-  "ice": []
+  "ice": ["Svindelbeskyttelse"]
 }
 ```
 
@@ -186,7 +193,7 @@ sammenligningen og i prisoversikten. Legg til flere ved behov.
 Enkeltplaner kan i tillegg ha plan-spesifikke tjenester via `inkludert` på selve
 planen (f.eks. **Sikre Mobil** → «Telenor Sikre», **iceMax med Netflix** →
 «Netflix»). Disse vises i prisoversikten. Sikre Mobil er en egen premium
-ubegrenset-plan (699, maks hastighet) ved siden av Ubegrenset Enkel/Normal/Maksimal.
+ubegrenset-plan (699, maks hastighet) ved siden av Ubegrenset Enkel/Maksimal.
 
 **Sikkerhetsscore:** Telia har den beste innebygde sikkerheten av
 standardabonnementene (`sikkerhet_basis`: Telia 60, Telenor 45, ice 35). **Kun
@@ -224,6 +231,24 @@ og en styrke – **Foretrekk** eller **Krev**:
 
 Den viste prisen endres ikke; bare rekkefølgen. Anbefalingen merkes med
 «✦ kundepreferanse» når preferansen avgjorde valget. Standard er «Ingen» (av).
+
+## Avanserte innstillinger
+
+Under «Avanserte innstillinger» i hamburger-menyen:
+
+- **Ekskluder dagens operatør** (standard **PÅ**): når selgeren har valgt kundens
+  nåværende leverandør i «Dagens leverandør», holdes den operatøren utenfor
+  anbefalingen (kunden skal jo bytte). Gjelder bare når dagens operatør er en av
+  våre tre (Telenor/Telia/ice). Feltet «Dagens leverandør» starter **tomt** – er
+  det tomt, ekskluderes ingenting. Faller automatisk tilbake til fullt utvalg
+  hvis ekskluderingen ville fjernet all dekning.
+- **Lokal dekning:** glidere per operatør som overstyrer landssnittet (`SCORE.dekning`)
+  når lokal dekning avviker. Lagres per nettleser (`elkjop_lokal_dekning`).
+  «Nullstill til standard» fjerner overstyringene.
+
+**Kundeprioritet** («Hva er viktigst for kunden?»): hver dimensjon (pris/dekning/
+sikkerhet) settes til Lav/Middels/Høy/Svært høy. **Lav = teller ikke** (0 vekt);
+er alt satt til Lav, brukes ren pris. Ved lik vektet score vinner billigste.
 
 ## Operatør-tilpasset anbefaling
 
