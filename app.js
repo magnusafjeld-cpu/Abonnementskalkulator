@@ -88,6 +88,11 @@ const SIKKERHET_VIKTIG_FRA = 2;
 function byggLeverandorer() {
   const sel = document.getElementById("leverandor");
   sel.innerHTML = "";
+  // Tomt standardvalg – ingen leverandør valgt før selgeren velger.
+  const tom = document.createElement("option");
+  tom.value = "";
+  tom.textContent = "— Velg leverandør —";
+  sel.appendChild(tom);
   OPERATORER.forEach((g) => {
     const og = document.createElement("optgroup");
     og.label = g.gruppe;
