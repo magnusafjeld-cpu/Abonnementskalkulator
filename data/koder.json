@@ -29,7 +29,7 @@
     "telia_junior_1":  { "kode": "TEJR1GB",       "binding": "Uten binding" }
   },
 
-  "telia_x_ids": ["telia_x_start", "telia_x_kampanje", "telia_x_basis", "telia_x_max", "telia_x_ung"],
+  "telia_x_ids": ["telia_x_start", "telia_x_kampanje", "telia_x_basis", "telia_x_max"],
 
   "ekstrakoder": {
     "ice_familie":        { "kode": "SICEFAMILIE",  "tekst": "ICE familieprovisjon" },
