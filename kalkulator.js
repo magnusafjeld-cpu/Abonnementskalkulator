@@ -83,6 +83,7 @@ let FORDELER = {};
 let PRIORITET = {};
 let SALGSKODER = {};   // plan-id -> { kode, binding }
 let TELIA_X_IDS = [];  // plan-id-er som regnes som "Telia X" (utløser peakkoder)
+let TELIA_X_UTEN_FAM = []; // Telia X-planer som IKKE skal ha familiekode (men beholder peaksupport)
 let EKSTRAKODER = {};  // familie-/peakkoder
 let SCORE = { dekning: {}, sikkerhet_basis: {} }; // dekning/sikkerhet pr. operatør
 let LOKAL_DEKNING = {}; // lokale dekningsoverstyringer pr. operatør (avanserte innst.)
@@ -112,6 +113,7 @@ async function lastData() {
   PRIORITET = pri.prioritet;
   SALGSKODER = kod.salgskoder || {};
   TELIA_X_IDS = kod.telia_x_ids || [];
+  TELIA_X_UTEN_FAM = kod.telia_x_uten_familiekode || [];
   EKSTRAKODER = kod.ekstrakoder || {};
   lastPeak();
   lastLokalDekning();
@@ -870,7 +872,7 @@ function hastighetTekst(p) {
 function byggTilbudskoder(brukerPlaner) {
   const iceFamilieAktiv =
     brukerPlaner.filter((v) => v.plan.leverandor === "ice").length >= 2;
-  let teliaXTeller = 0;
+  let teliaXFamTeller = 0; // teller kun familiekvalifiserte Telia X (ikke X Ung)
   let sikreKodeLagt = false; // Sikkerhetssenter-koder legges kun én gang per kunde.
 
   // Familiefordelte priser (Telenor-modellen) – brukes til å avgjøre om en U13 på
@@ -919,13 +921,14 @@ function byggTilbudskoder(brukerPlaner) {
 
     // Telia X – peakkoder kun under Sommerpeak.
     const erTeliaX = TELIA_X_IDS.includes(id);
-    if (erTeliaX) {
-      teliaXTeller++;
-      if (PEAK) {
-        const ps = EKSTRAKODER.telia_peaksupport;
-        if (ps) koder.push({ kode: ps.kode, tekst: ps.tekst, type: "ekstra" });
-        // Familie gjelder fra og med abo nr. 2.
-        if (teliaXTeller >= 2) {
+    if (erTeliaX && PEAK) {
+      // Peaksupport (tilbehørsbinding) på ALLE Telia X-salg.
+      const ps = EKSTRAKODER.telia_peaksupport;
+      if (ps) koder.push({ kode: ps.kode, tekst: ps.tekst, type: "ekstra" });
+      // Familiekode: kun familiekvalifiserte Telia X (ikke X Ung), fra og med nr. 2.
+      if (!TELIA_X_UTEN_FAM.includes(id)) {
+        teliaXFamTeller++;
+        if (teliaXFamTeller >= 2) {
           const fam = EKSTRAKODER.telia_familie_peak;
           if (fam) koder.push({ kode: fam.kode, tekst: fam.tekst, type: "ekstra" });
         }
