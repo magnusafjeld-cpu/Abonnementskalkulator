@@ -1315,6 +1315,17 @@ async function start() {
   document.getElementById("logoKnapp").addEventListener("click", aapnePris);
   document.getElementById("tilbakeKnapp").addEventListener("click", () => visVisning(forrigeVisning));
 
+  // Guide / hjelp («i»-knapp i headeren)
+  const guideOverlay = document.getElementById("guideOverlay");
+  document.getElementById("guideKnapp").addEventListener("click", () => (guideOverlay.hidden = false));
+  document.getElementById("guideLukk").addEventListener("click", () => (guideOverlay.hidden = true));
+  guideOverlay.addEventListener("click", (e) => {
+    if (e.target === guideOverlay) guideOverlay.hidden = true;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !guideOverlay.hidden) guideOverlay.hidden = true;
+  });
+
   oppdater();
 }
 

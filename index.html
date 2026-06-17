@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=42" />
+  <link rel="stylesheet" href="style.css?v=43" />
 </head>
 <body>
   <header>
@@ -22,6 +22,14 @@
       <div class="t">Abonnementskalkulator</div>
       <div class="sub">Telenor · Telia · ice</div>
     </div>
+
+    <button type="button" id="guideKnapp" class="guide-knapp" aria-label="Guide / slik bruker du verktøyet" title="Guide">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9.5" />
+        <line x1="12" y1="11" x2="12" y2="16.5" />
+        <line x1="12" y1="7.5" x2="12.01" y2="7.5" />
+      </svg>
+    </button>
 
     <div id="meny" class="meny-panel" hidden>
       <div class="meny-tittel">Produktrabatt (engangs)</div>
@@ -202,7 +210,83 @@
     </div>
   </div>
 
+  <!-- Guide / hjelp -->
+  <div id="guideOverlay" class="kalk-overlay" hidden>
+    <div class="guide-modal" role="dialog" aria-label="Guide">
+      <div class="kalk-topp">
+        <span>Slik bruker du kalkulatoren</span>
+        <button type="button" id="guideLukk" class="kalk-lukk" aria-label="Lukk">✕</button>
+      </div>
+      <div class="guide">
+        <section>
+          <h3>1 · Slik gjør du</h3>
+          <ol>
+            <li>Fyll inn kundens situasjon i dag.</li>
+            <li>Trykk <b>«Gi anbefaling →»</b>.</li>
+            <li>Les anbefalingen og trykk <b>«Velg tilbud»</b> for kodene.</li>
+          </ol>
+          <p class="guide-tips">↺ <b>Ny kunde</b> tømmer alle felt for neste kunde.</p>
+        </section>
+
+        <section>
+          <h3>2 · Fyll inn kunden</h3>
+          <ul>
+            <li><b>Dagens leverandør</b> – kundens nåværende operatør (holdes utenfor anbefalingen).</li>
+            <li><b>Dagens månedspris</b> – bruk <b>kalkulator-knappen</b> for å summere flere abonnement.</li>
+            <li><b>Personer i husstanden</b> – legg til én rad per person, med alder, databehov og hastighet.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>3 · Hva er viktigst for kunden?</h3>
+          <ul>
+            <li>Sett <b>pris</b>, <b>dekning</b> og <b>sikkerhet</b> etter hva kunden bryr seg om.</li>
+            <li><b>Lav</b> = teller ikke. Står alt på Lav, velges billigste.</li>
+            <li>Høy/Svært høy sikkerhet kan løfte til <b>Telenor Sikre</b>.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>4 · Les anbefalingen</h3>
+          <ul>
+            <li><b>Anbefalingskortet</b> viser operatør, totalpris og fordeler.</li>
+            <li><b>Besparelse</b> vises mot dagens pris (måned og år).</li>
+            <li><b>Fordeling per person</b> viser hva hver betaler.</li>
+            <li><b>Andre alternativer</b> kan åpnes for å sammenligne de øvrige.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>5 · Velg tilbud (koder)</h3>
+          <ul>
+            <li>Åpner kodene du legger inn i <b>Blueberry</b>.</li>
+            <li>Trykk kopier-ikonet ved hver kode, eller bruk <b>samlet kodeliste</b>.</li>
+            <li>Gult varsel = binding eller manglende kode (egendefinert abo).</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>6 · Menyen (☰)</h3>
+          <ul>
+            <li><b>Produktrabatt</b> – 500/1000 kr per Telia X.</li>
+            <li><b>Kundepreferanse</b> – Foretrekk (vinner nær billigste) eller Krev (alltid).</li>
+            <li><b>Avansert</b> – ekskluder dagens operatør og juster lokal dekning.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>7 · Prisoversikt (Elkjøp-logoen)</h3>
+          <ul>
+            <li><b>Sommerpeak</b>-bryter for kampanjepriser.</li>
+            <li>Rediger priser lokalt og legg til / fjern abonnement.</li>
+            <li>Endringer er lokale på denne enheten – «↺ Tilbakestill» nullstiller.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <script src="kalkulator.js?v=43"></script>
-  <script src="app.js?v=62"></script>
+  <script src="app.js?v=63"></script>
 </body>
 </html>

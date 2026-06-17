@@ -156,6 +156,23 @@ header .logo img { height: 30px; width: auto; display: block; }
 header .header-tittel .t { font-weight: 700; font-size: 15px; }
 header .sub { font-size: 12px; opacity: .8; letter-spacing: .3px; }
 
+/* «i»-guideknapp (skyves helt til høyre i headeren) */
+header .guide-knapp {
+  margin-left: auto;
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  color: #fff;
+  padding: 8px 9px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: background .12s;
+}
+header .guide-knapp:hover { background: rgba(255, 255, 255, .1); }
+header .guide-knapp:active { background: rgba(255, 255, 255, .18); }
+
 /* ---- Layout ---- */
 .wrap {
   max-width: 820px;
@@ -1061,6 +1078,36 @@ footer {
   max-height: 88vh;
   overflow-y: auto;
   box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+}
+
+/* ---- Guide / hjelp ---- */
+.guide-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+}
+.guide section { margin-top: 18px; }
+.guide section:first-child { margin-top: 4px; }
+.guide h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--navy);
+}
+.guide ul, .guide ol { margin: 0; padding-left: 20px; }
+.guide li { margin: 4px 0; font-size: 14px; line-height: 1.5; }
+.guide .guide-tips {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--tekst-svak);
+  background: #f4f6f9;
+  border-radius: 8px;
+  padding: 8px 10px;
 }
 .tilbud-intro {
   margin: 0 0 12px;
