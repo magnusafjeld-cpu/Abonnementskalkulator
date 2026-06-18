@@ -448,11 +448,27 @@ function oppdater() {
     const spar = h.dagensPris - a.total;
     if (spar > 0) {
       html += `
-        <div class="besparelse positiv">
-          <span>Kunden sparer ${kr(spar)}/mnd
-            <span class="aar">${kr(spar * 12)} i året vs. i dag</span>
-          </span>
-          <span class="ikon">↓</span>
+        <div class="besparelse-wrap">
+          <button type="button" class="besparelse positiv besparelse-knapp" aria-expanded="false">
+            <span>Kunden sparer ${kr(spar)}/mnd
+              <span class="aar">${kr(spar * 12)} i året vs. i dag</span>
+            </span>
+            <span class="ikon besparelse-pil">▾</span>
+          </button>
+          <div class="besparelse-detalj" hidden>
+            <div class="besparelse-rad">
+              <span class="besparelse-etikett">Nåværende pris per år</span>
+              <span class="besparelse-belop gammel-pris">${kr(h.dagensPris * 12)}</span>
+            </div>
+            <div class="besparelse-rad">
+              <span class="besparelse-etikett">Ny pris per år</span>
+              <span class="besparelse-belop ny-pris">${kr(a.total * 12)}</span>
+            </div>
+            <div class="besparelse-rad besparelse-sum-rad">
+              <span class="besparelse-etikett">Sparer totalt</span>
+              <span class="besparelse-belop">${kr(spar * 12)}</span>
+            </div>
+          </div>
         </div>`;
     } else if (spar === 0) {
       html += `<div class="besparelse nulleller">Samme pris som i dag – men hos ${a.leverandor}.</div>`;
@@ -1220,6 +1236,15 @@ async function start() {
     const tilbudBtn = e.target.closest(".cta-tilbud");
     if (tilbudBtn) {
       visTilbud(tilbudBtn.dataset.lev);
+      return;
+    }
+    const besparelseKnapp = e.target.closest(".besparelse-knapp");
+    if (besparelseKnapp) {
+      const detalj = besparelseKnapp.nextElementSibling;
+      const apnes = detalj.hidden;
+      detalj.hidden = !apnes;
+      besparelseKnapp.setAttribute("aria-expanded", String(apnes));
+      besparelseKnapp.classList.toggle("apen", apnes);
       return;
     }
     const topp = e.target.closest(".alt-topp");

@@ -661,6 +661,59 @@ header .guide-knapp:active { background: rgba(255, 255, 255, .18); }
 }
 .besparelse .aar { font-size: 13px; font-weight: 600; opacity: .85; display: block; margin-top: 2px; }
 
+/* Besparelse som dropdown-knapp */
+.besparelse-knapp {
+  width: 100%;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  background: linear-gradient(135deg, #f1f8e4 0%, #e7f3d4 100%);
+  border: 1px solid #d4e8b2;
+  color: var(--lysgronn-700);
+}
+.besparelse-knapp:hover { filter: brightness(0.97); }
+.besparelse-knapp.apen { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.besparelse-pil {
+  transition: transform 0.2s;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--lysgronn);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.besparelse-knapp.apen .besparelse-pil { transform: rotate(180deg); }
+
+/* Utvidet detalj-panel */
+.besparelse-detalj {
+  background: #f7fbe9;
+  border: 1px solid #d4e8b2;
+  border-top: none;
+  border-radius: 0 0 var(--rad) var(--rad);
+  padding: 12px 18px;
+  box-shadow: var(--skygge);
+}
+.besparelse-rad {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid #e0f0c0;
+  font-size: 15px;
+}
+.besparelse-rad:last-child { border-bottom: none; }
+.besparelse-etikett { color: var(--tekst-svak); font-weight: 500; }
+.besparelse-belop { font-weight: 700; font-size: 16px; }
+.gammel-pris { text-decoration: line-through; opacity: 0.6; }
+.ny-pris { color: var(--lysgronn-700); }
+.besparelse-sum-rad .besparelse-etikett { font-weight: 700; color: var(--lysgronn-700); }
+.besparelse-sum-rad .besparelse-belop { font-size: 18px; color: var(--lysgronn-700); }
+
 /* ---- Sammenligning ---- */
 .kort-rad {
   display: flex;
