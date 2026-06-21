@@ -116,6 +116,48 @@ header .meny-knapp:active { background: rgba(255, 255, 255, .18); }
   background-position: right 12px center;
   cursor: pointer;
 }
+/* Produktrabatt – manuelt beløp */
+.rabatt-belop-rad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  transition: opacity .12s;
+}
+.rabatt-belop-rad.disabled { opacity: .45; }
+.rabatt-belop-tekst { color: var(--tekst); font-size: 14px; }
+.rabatt-belop-felt {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.rabatt-belop-felt input {
+  width: 96px;
+  padding: 10px 34px 10px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+  border: 1.5px solid var(--kant);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--tekst);
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.rabatt-belop-felt input::-webkit-outer-spin-button,
+.rabatt-belop-felt input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.rabatt-belop-felt input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13, 26, 86, .14); }
+.rabatt-belop-felt input:disabled { background: #f4f5f9; cursor: not-allowed; }
+.rabatt-belop-suffiks {
+  position: absolute;
+  right: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tekst-svak);
+  pointer-events: none;
+}
+
 /* Segmentert valg (Foretrekk / Krev) */
 .seg { display: flex; gap: 6px; margin-top: 10px; }
 .seg-btn {

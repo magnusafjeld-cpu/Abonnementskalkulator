@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=45" />
+  <link rel="stylesheet" href="style.css?v=46" />
 </head>
 <body>
   <header>
@@ -34,15 +34,18 @@
     <div id="meny" class="meny-panel" hidden>
       <div class="meny-tittel">Produktrabatt (engangs)</div>
       <label class="toggle-rad">
-        <input type="checkbox" id="rabatt500" checked />
+        <input type="checkbox" id="rabattPaa" checked />
         <span class="toggle-slider"></span>
-        <span class="toggle-tekst">500 kr per Telia X</span>
+        <span class="toggle-tekst">Produktrabatt per Telia X</span>
       </label>
-      <label class="toggle-rad">
-        <input type="checkbox" id="rabatt1000" />
-        <span class="toggle-slider"></span>
-        <span class="toggle-tekst">1000 kr per Telia X</span>
-      </label>
+      <div class="rabatt-belop-rad">
+        <label for="rabattBelop" class="rabatt-belop-tekst">Beløp per Telia X (kr)</label>
+        <div class="rabatt-belop-felt">
+          <input type="number" id="rabattBelop" value="500" min="0" max="1000" step="50" inputmode="numeric" />
+          <span class="rabatt-belop-suffiks">kr</span>
+        </div>
+      </div>
+      <p class="meny-hint">Standard 500 kr. Kan endres manuelt, maks 1000 kr.</p>
 
       <div class="meny-tittel meny-tittel-2">Kundepreferanse</div>
       <select id="prefOperator" class="meny-select">
@@ -287,6 +290,6 @@
   </div>
 
   <script src="kalkulator.js?v=43"></script>
-  <script src="app.js?v=65"></script>
+  <script src="app.js?v=66"></script>
 </body>
 </html>

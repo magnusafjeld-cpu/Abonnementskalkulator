@@ -352,12 +352,10 @@ function oppdater() {
   const prefModus =
     document.querySelector("#prefModus .seg-btn.aktiv")?.dataset.modus || "foretrekk";
   const preferanse = prefOperator ? { leverandor: prefOperator, modus: prefModus } : null;
-  // Valgt produktrabatt-kampanje (gjensidig utelukkende): 0 / 500 / 1000 kr per Telia X.
+  // Produktrabatt: på/av + manuelt beløp per Telia X (standard 500, maks 1000).
   // Vektes inn i rangeringen (fordelt over CONFIG.produktrabatt_periode_mnd).
-  const produktrabattKr = document.getElementById("rabatt1000").checked
-    ? 1000
-    : document.getElementById("rabatt500").checked
-    ? 500
+  const produktrabattKr = document.getElementById("rabattPaa").checked
+    ? rabattBelopKr()
     : 0;
   // Kundeprioritet (nivåer pr. dimensjon) -> vekter + sikkerhetViktig. Når
   // kundepreferanser utover pris er skrudd av: ren pris.
@@ -970,14 +968,21 @@ function kalkTast(k) {
 // priser/Peak lagres separat i kalkulator.js.
 const MENY_NOKKEL = "elkjop_meny_v1";
 
+// Maks produktrabatt per Telia X. Beløpsfeltet i menyen klampes til dette.
+const RABATT_MAKS_KR = 1000;
+
+// Leser produktrabatt-beløpet fra menyen, klampet til [0, RABATT_MAKS_KR].
+function rabattBelopKr() {
+  const v = Number(document.getElementById("rabattBelop").value);
+  if (Number.isNaN(v) || v <= 0) return 0;
+  return Math.min(v, RABATT_MAKS_KR);
+}
+
 function lagreMeny() {
   try {
     const data = {
-      rabatt: document.getElementById("rabatt1000").checked
-        ? 1000
-        : document.getElementById("rabatt500").checked
-        ? 500
-        : 0,
+      rabattPaa: document.getElementById("rabattPaa").checked,
+      rabattBelop: rabattBelopKr(),
       prefOperator: document.getElementById("prefOperator").value,
       prefModus:
         document.querySelector("#prefModus .seg-btn.aktiv")?.dataset.modus ||
@@ -1001,9 +1006,17 @@ function lastMeny() {
   }
   if (!data) return; // ingen lagrede valg -> behold HTML-standard
 
-  // Produktrabatt (gjensidig utelukkende).
-  document.getElementById("rabatt500").checked = data.rabatt === 500;
-  document.getElementById("rabatt1000").checked = data.rabatt === 1000;
+  // Produktrabatt: ny form (på/av + beløp), med fallback til gammel (0/500/1000).
+  const rabattPaaEl = document.getElementById("rabattPaa");
+  const rabattBelopEl = document.getElementById("rabattBelop");
+  if (typeof data.rabattPaa === "boolean") {
+    rabattPaaEl.checked = data.rabattPaa;
+    if (data.rabattBelop != null && data.rabattBelop > 0)
+      rabattBelopEl.value = Math.min(data.rabattBelop, RABATT_MAKS_KR);
+  } else if (typeof data.rabatt === "number") {
+    rabattPaaEl.checked = data.rabatt > 0;
+    if (data.rabatt > 0) rabattBelopEl.value = Math.min(data.rabatt, RABATT_MAKS_KR);
+  }
 
   // Kundepreferanse (operatør + Foretrekk/Krev).
   if (typeof data.prefOperator === "string")
@@ -1108,16 +1121,24 @@ async function start() {
     }
   });
 
-  // Gjensidig utelukkende produktrabatt-brytere (maks én på)
-  const r500 = document.getElementById("rabatt500");
-  const r1000 = document.getElementById("rabatt1000");
-  r500.addEventListener("change", () => {
-    if (r500.checked) r1000.checked = false;
+  // Produktrabatt: på/av-bryter + manuelt beløp (klampes til maks 1000 kr)
+  const rabattPaa = document.getElementById("rabattPaa");
+  const rabattBelop = document.getElementById("rabattBelop");
+  const settBelopAktiv = () => {
+    rabattBelop.disabled = !rabattPaa.checked;
+    rabattBelop.closest(".rabatt-belop-rad").classList.toggle("disabled", !rabattPaa.checked);
+  };
+  settBelopAktiv();
+  rabattPaa.addEventListener("change", () => {
+    settBelopAktiv();
     lagreMeny();
     oppdater();
   });
-  r1000.addEventListener("change", () => {
-    if (r1000.checked) r500.checked = false;
+  rabattBelop.addEventListener("input", () => {
+    // Klamp til [0, 1000] og skriv tilbake klampet verdi til feltet.
+    const v = Number(rabattBelop.value);
+    if (!Number.isNaN(v) && v > RABATT_MAKS_KR) rabattBelop.value = RABATT_MAKS_KR;
+    if (!Number.isNaN(v) && v < 0) rabattBelop.value = 0;
     lagreMeny();
     oppdater();
   });
