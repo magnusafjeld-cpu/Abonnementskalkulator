@@ -81,8 +81,8 @@ header .meny-knapp:active { background: rgba(255, 255, 255, .18); }
   box-shadow: 0 8px 28px rgba(13, 26, 86, .22);
   padding: 14px 16px;
   z-index: 30;
-  min-width: 250px;
-  max-width: min(300px, calc(100vw - 24px));
+  min-width: 280px;
+  max-width: min(340px, calc(100vw - 24px));
   /* Begrens høyden til skjermen og la innholdet scrolle når avanserte
      innstillinger er åpne (ellers forsvinner bunnen ut av skjermen). */
   max-height: calc(100vh - 80px);
