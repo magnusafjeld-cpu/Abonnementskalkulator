@@ -352,11 +352,9 @@ function oppdater() {
   const prefModus =
     document.querySelector("#prefModus .seg-btn.aktiv")?.dataset.modus || "foretrekk";
   const preferanse = prefOperator ? { leverandor: prefOperator, modus: prefModus } : null;
-  // Produktrabatt: på/av + manuelt beløp per Telia X (standard 500, maks 1000).
+  // Produktrabatt per Telia X: manuelt beløp (standard 500, 0 = av, maks 1000).
   // Vektes inn i rangeringen (fordelt over CONFIG.produktrabatt_periode_mnd).
-  const produktrabattKr = document.getElementById("rabattPaa").checked
-    ? rabattBelopKr()
-    : 0;
+  const produktrabattKr = rabattBelopKr();
   // Kundeprioritet (nivåer pr. dimensjon) -> vekter + sikkerhetViktig. Når
   // kundepreferanser utover pris er skrudd av: ren pris.
   const prioritet = state.visPrioritet
@@ -981,7 +979,6 @@ function rabattBelopKr() {
 function lagreMeny() {
   try {
     const data = {
-      rabattPaa: document.getElementById("rabattPaa").checked,
       rabattBelop: rabattBelopKr(),
       prefOperator: document.getElementById("prefOperator").value,
       prefModus:
@@ -1006,16 +1003,14 @@ function lastMeny() {
   }
   if (!data) return; // ingen lagrede valg -> behold HTML-standard
 
-  // Produktrabatt: ny form (på/av + beløp), med fallback til gammel (0/500/1000).
-  const rabattPaaEl = document.getElementById("rabattPaa");
+  // Produktrabatt-beløp. Fallback til gammel form (rabattPaa/rabatt) hvis lagret.
   const rabattBelopEl = document.getElementById("rabattBelop");
-  if (typeof data.rabattPaa === "boolean") {
-    rabattPaaEl.checked = data.rabattPaa;
-    if (data.rabattBelop != null && data.rabattBelop > 0)
-      rabattBelopEl.value = Math.min(data.rabattBelop, RABATT_MAKS_KR);
+  if (data.rabattBelop != null) {
+    rabattBelopEl.value = Math.min(Math.max(data.rabattBelop, 0), RABATT_MAKS_KR);
+  } else if (typeof data.rabattPaa === "boolean") {
+    rabattBelopEl.value = data.rabattPaa ? 500 : 0;
   } else if (typeof data.rabatt === "number") {
-    rabattPaaEl.checked = data.rabatt > 0;
-    if (data.rabatt > 0) rabattBelopEl.value = Math.min(data.rabatt, RABATT_MAKS_KR);
+    rabattBelopEl.value = Math.min(Math.max(data.rabatt, 0), RABATT_MAKS_KR);
   }
 
   // Kundepreferanse (operatør + Foretrekk/Krev).
@@ -1121,19 +1116,8 @@ async function start() {
     }
   });
 
-  // Produktrabatt: på/av-bryter + manuelt beløp (klampes til maks 1000 kr)
-  const rabattPaa = document.getElementById("rabattPaa");
+  // Produktrabatt: manuelt beløp per Telia X (0 = av, klampes til maks 1000 kr)
   const rabattBelop = document.getElementById("rabattBelop");
-  const settBelopAktiv = () => {
-    rabattBelop.disabled = !rabattPaa.checked;
-    rabattBelop.closest(".rabatt-belop-rad").classList.toggle("disabled", !rabattPaa.checked);
-  };
-  settBelopAktiv();
-  rabattPaa.addEventListener("change", () => {
-    settBelopAktiv();
-    lagreMeny();
-    oppdater();
-  });
   rabattBelop.addEventListener("input", () => {
     // Klamp til [0, 1000] og skriv tilbake klampet verdi til feltet.
     const v = Number(rabattBelop.value);

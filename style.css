@@ -123,9 +123,7 @@ header .meny-knapp:active { background: rgba(255, 255, 255, .18); }
   justify-content: space-between;
   gap: 12px;
   margin-top: 14px;
-  transition: opacity .12s;
 }
-.rabatt-belop-rad.disabled { opacity: .45; }
 .rabatt-belop-tekst { color: var(--tekst); font-size: 14px; }
 .rabatt-belop-felt {
   position: relative;
@@ -148,7 +146,6 @@ header .meny-knapp:active { background: rgba(255, 255, 255, .18); }
 .rabatt-belop-felt input::-webkit-outer-spin-button,
 .rabatt-belop-felt input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .rabatt-belop-felt input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13, 26, 86, .14); }
-.rabatt-belop-felt input:disabled { background: #f4f5f9; cursor: not-allowed; }
 .rabatt-belop-suffiks {
   position: absolute;
   right: 12px;
