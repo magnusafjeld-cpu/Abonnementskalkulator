@@ -1126,6 +1126,13 @@ async function start() {
     lagreMeny();
     oppdater();
   });
+  // Enter avslutter redigeringen av feltet, men holder burgermenyen åpen.
+  rabattBelop.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      rabattBelop.blur();
+    }
+  });
 
   // Kundepreferanse (operatør + Foretrekk/Krev)
   const prefOp = document.getElementById("prefOperator");
