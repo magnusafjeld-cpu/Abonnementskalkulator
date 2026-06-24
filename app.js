@@ -355,6 +355,9 @@ function oppdater() {
   // Produktrabatt per Telia X: manuelt beløp (standard 500, 0 = av, maks 1000).
   // Vektes inn i rangeringen (fordelt over CONFIG.produktrabatt_periode_mnd).
   const produktrabattKr = rabattBelopKr();
+  // Skal produktrabatten påvirke selve anbefalingen? Av = vises fortsatt, men
+  // teller ikke i hvilken operatør/plan som anbefales.
+  const rabattIRangering = document.getElementById("rabattIRangering").checked;
   // Kundeprioritet (nivåer pr. dimensjon) -> vekter + sikkerhetViktig. Når
   // kundepreferanser utover pris er skrudd av: ren pris.
   const prioritet = state.visPrioritet
@@ -362,7 +365,7 @@ function oppdater() {
     : { vekter: { pris: 1, dekning: 0, sikkerhet: 0 }, sikkerhetViktig: false, sikkerhetNiva: 0 };
   // Ekskluder dagens operatør hvis valgt (avanserte innstillinger).
   const ekskluder = state.ekskluderDagens ? h.leverandor : null;
-  const res = beregnHusstand(h.brukere, h.dagensPris, preferanse, produktrabattKr, prioritet, ekskluder);
+  const res = beregnHusstand(h.brukere, h.dagensPris, preferanse, produktrabattKr, prioritet, ekskluder, rabattIRangering);
   const el = document.getElementById("resultat");
 
   if (!res.ok) {
@@ -980,6 +983,7 @@ function lagreMeny() {
   try {
     const data = {
       rabattBelop: rabattBelopKr(),
+      rabattIRangering: document.getElementById("rabattIRangering").checked,
       prefOperator: document.getElementById("prefOperator").value,
       prefModus:
         document.querySelector("#prefModus .seg-btn.aktiv")?.dataset.modus ||
@@ -1012,6 +1016,9 @@ function lastMeny() {
   } else if (typeof data.rabatt === "number") {
     rabattBelopEl.value = Math.min(Math.max(data.rabatt, 0), RABATT_MAKS_KR);
   }
+  // Om produktrabatten skal telle i anbefalingen (standard på).
+  if (typeof data.rabattIRangering === "boolean")
+    document.getElementById("rabattIRangering").checked = data.rabattIRangering;
 
   // Kundepreferanse (operatør + Foretrekk/Krev).
   if (typeof data.prefOperator === "string")
@@ -1132,6 +1139,11 @@ async function start() {
       e.preventDefault();
       rabattBelop.blur();
     }
+  });
+  // Bryter: skal produktrabatten telle i anbefalingen?
+  document.getElementById("rabattIRangering").addEventListener("change", () => {
+    lagreMeny();
+    oppdater();
   });
 
   // Kundepreferanse (operatør + Foretrekk/Krev)

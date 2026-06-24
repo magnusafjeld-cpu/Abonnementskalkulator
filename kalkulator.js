@@ -629,7 +629,12 @@ function sikkerhetsoppgradering(leverandor, lister, brukere, prisOptimal, budsje
 // med eget 'produktrabatt_kr' bruker sitt eget beløp i stedet. Gjør at en litt
 // dyrere Telia X (eller et egendefinert abo) kan velges når engangsrabatten gir
 // lavere effektiv totalpris.
-function beregnLeverandor(leverandor, brukere, sikkerhetsBudsjett, bonusKr) {
+// visRabattKr: rabattbeløpet som skal VISES for valgte planer. Som regel lik
+// bonusKr, men kan avvike når rabatten er skrudd av i rangeringen (bonusKr = 0
+// for utvalg/ranking, men beløpet skal fortsatt vises hvis en Telia X likevel
+// blir valgt). Faller tilbake til bonusKr når den ikke er satt.
+function beregnLeverandor(leverandor, brukere, sikkerhetsBudsjett, bonusKr, visRabattKr) {
+  const visKr = visRabattKr != null ? visRabattKr : bonusKr;
   const lister = brukere.map((b) => velgKandidater(leverandor, b));
 
   // Kan ikke betjene alle (f.eks. noen krever fri data, leverandøren har ikke).
@@ -679,7 +684,7 @@ function beregnLeverandor(leverandor, brukere, sikkerhetsBudsjett, bonusKr) {
   // engangsbeløp. Beløpet kommer fra valgt kampanje (0/500/1000) eller planens
   // eget produktrabatt_kr for egendefinerte abonnement.
   const antallBonus = valg.filter((v) => v.plan.produktrabatt).length;
-  const bonusTotalKr = produktrabattTotalKr(valg, bonusKr || 0);
+  const bonusTotalKr = produktrabattTotalKr(valg, visKr || 0);
 
   return {
     leverandor,
@@ -713,17 +718,23 @@ function beregnLeverandor(leverandor, brukere, sikkerhetsBudsjett, bonusKr) {
  *        stort sikkerhetsbudsjettet er (CONFIG.sikkerhet_premie_maks_kr per SIM)
  *        – slik at f.eks. dekning satt høyt ikke endrer sikkerhetsoppgraderingen.
  */
-function beregnHusstand(brukere, dagensTotal, preferanse, produktrabattKr, prioritet, ekskluder) {
+function beregnHusstand(brukere, dagensTotal, preferanse, produktrabattKr, prioritet, ekskluder, rabattIRangering) {
   if (!brukere.length) return { ok: false, grunn: "ingen_brukere" };
   const vekt = (prioritet && prioritet.vekter) || { pris: 1, dekning: 0, sikkerhet: 0 };
   const sikkerhetViktig = !!(prioritet && prioritet.sikkerhetViktig);
+
+  // Skal produktrabatten påvirke selve anbefalingen (plan-utvalg + rangering)?
+  // Av (false) => rabatten vises fortsatt for valgte planer, men teller ikke i
+  // hvilken operatør/plan som anbefales. På/udefinert => som før.
+  const rabattVeier = rabattIRangering !== false;
+  const rangeringKr = rabattVeier ? produktrabattKr : 0;
 
   const periode = CONFIG.produktrabatt_periode_mnd || 12;
   // Global engangs produktrabatt per kvalifiserte plan (0/500/1000). Planer med
   // eget produktrabatt_kr bruker sitt eget beløp. Brukes både til å velge planer
   // (kan lønne seg å sette en fastdata-bruker på Telia X) og til den effektive
   // prisen i rangeringen. Amortiseringen bruker husstandens samlede engangsbeløp.
-  const amortisert = (lev) => (lev.bonusTotalKr || 0) / periode;
+  const amortisert = (lev) => (rabattVeier ? (lev.bonusTotalKr || 0) / periode : 0);
 
   // Ekskluder dagens operatør (hvis valgt og det er en av våre). Faller tilbake til
   // fullt sett dersom ekskluderingen fjerner all dekning.
@@ -735,12 +746,12 @@ function beregnHusstand(brukere, dagensTotal, preferanse, produktrabattKr, prior
   // Pass 1: pris-optimal sammensetning per leverandør (uten sikkerhetsoppgradering)
   // for å finne det globale prisgulvet.
   let pass1 = operatorer
-    .map((l) => beregnLeverandor(l, brukere, null, produktrabattKr))
+    .map((l) => beregnLeverandor(l, brukere, null, rangeringKr, produktrabattKr))
     .filter((x) => x.dekkerAlle);
   if (!pass1.length && operatorer.length < VARE_LEVERANDORER.length) {
     operatorer = VARE_LEVERANDORER; // ekskludering fjernet all dekning -> ignorer
     pass1 = operatorer
-      .map((l) => beregnLeverandor(l, brukere, null, produktrabattKr))
+      .map((l) => beregnLeverandor(l, brukere, null, rangeringKr, produktrabattKr))
       .filter((x) => x.dekkerAlle);
   }
   if (!pass1.length) return { ok: false, grunn: "ingen_dekning" };
@@ -775,7 +786,7 @@ function beregnHusstand(brukere, dagensTotal, preferanse, produktrabattKr, prior
   // til sikkerhetsbudsjettet, så de sikreste planene velges uten å sprenge taket.
   const sikkBudsjett = sikkerhetViktig ? minEffektiv + sikkPremiePerSim * nSim : null;
   let dekkende = operatorer
-    .map((l) => beregnLeverandor(l, brukere, sikkBudsjett, produktrabattKr))
+    .map((l) => beregnLeverandor(l, brukere, sikkBudsjett, rangeringKr, produktrabattKr))
     .filter((x) => x.dekkerAlle);
 
   dekkende.forEach((lev) => (lev.effektivPris = lev.total - amortisert(lev)));
