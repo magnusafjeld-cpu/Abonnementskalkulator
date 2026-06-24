@@ -99,10 +99,17 @@ let PEAK = true; // Sommerpeak-modus (kampanjepriser). Standard: på.
 async function lastData() {
   // no-store: unngå at nettleseren serverer utdaterte priser etter at
   // abonnementer.json er oppdatert månedlig.
+  // Kaster en tydelig feil ved både nettverksfeil og HTTP-feil (f.eks. 404), så
+  // start() kan vise en forståelig melding i stedet for en blank skjerm.
+  const hent = async (sti) => {
+    const r = await fetch(sti, { cache: "no-store" });
+    if (!r.ok) throw new Error(`Klarte ikke å hente ${sti} (HTTP ${r.status})`);
+    return r.json();
+  };
   const [abo, pri, kod] = await Promise.all([
-    fetch("data/abonnementer.json", { cache: "no-store" }).then((r) => r.json()),
-    fetch("data/prioritet.json", { cache: "no-store" }).then((r) => r.json()),
-    fetch("data/koder.json", { cache: "no-store" }).then((r) => r.json()),
+    hent("data/abonnementer.json"),
+    hent("data/prioritet.json"),
+    hent("data/koder.json"),
   ]);
   BASE_ABONNEMENTER = abo.abonnementer;
   FAMILIERABATT = abo.familierabatt || {};

@@ -1046,8 +1046,39 @@ function lastMeny() {
   }
 }
 
+// Stabil fallback-versjon (GitHub Pages) som anbefales hvis datalasting feiler
+// på den siden selgeren står på (f.eks. utdatert/ufullstendig Netlify-deploy).
+const FALLBACK_URL = "https://magnusafjeld-cpu.github.io/Abonnementskalkulator/";
+
+// Vises i stedet for en blank skjerm når data/-filene ikke kan lastes. Anbefaler
+// den stabile GitHub Pages-versjonen, eller omlasting hvis vi allerede er der.
+function visLastefeil(feil) {
+  const paaFallback = location.href.startsWith(FALLBACK_URL);
+  const wrap = document.querySelector(".wrap");
+  if (!wrap) return;
+  const handling = paaFallback
+    ? `<button type="button" class="cta" onclick="location.reload()">Last siden på nytt</button>`
+    : `<a class="cta" href="${FALLBACK_URL}">Åpne stabil versjon ↗</a>
+       <button type="button" class="lastefeil-reload" onclick="location.reload()">eller prøv på nytt her</button>`;
+  wrap.innerHTML = `
+    <section class="panel lastefeil">
+      <div class="lastefeil-ikon">⚠</div>
+      <h2>Kunne ikke laste data</h2>
+      <p>Prisene og abonnementene lot seg ikke hente${
+        paaFallback ? "" : ", så kalkulatoren kan ikke vise riktige tall her akkurat nå"
+      }.${paaFallback ? " Sjekk nettforbindelsen og prøv på nytt." : " Bruk den stabile versjonen i stedet:"}</p>
+      <div class="lastefeil-handling">${handling}</div>
+      <p class="lastefeil-detalj">${escapeHtml(feil && feil.message ? feil.message : String(feil))}</p>
+    </section>`;
+}
+
 async function start() {
-  await lastData();
+  try {
+    await lastData();
+  } catch (feil) {
+    visLastefeil(feil);
+    return;
+  }
   byggLeverandorer();
   lastMeny(); // gjenopprett lagrede menyvalg før vi bygger UI som avhenger av dem
   renderBrukere();
