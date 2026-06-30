@@ -246,7 +246,8 @@ header .guide-knapp:active { background: rgba(255, 255, 255, .18); }
   letter-spacing: -.2px;
   color: #101a3d;
 }
-/* Egen spesifisitet (.panel h2…) så margin-bottom ikke nulles av margin:0 over. */
+/* Frittstående overskrift (uten panel-topp) trenger egen luft under – ellers
+   nulles margin-bottom av margin:0 i regelen over (høyere spesifisitet). */
 .panel h2.seksjon-tittel-solo { margin-bottom: 14px; }
 .seksjon-ikon {
   flex: 0 0 auto;
