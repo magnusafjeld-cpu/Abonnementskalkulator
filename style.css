@@ -246,7 +246,8 @@ header .guide-knapp:active { background: rgba(255, 255, 255, .18); }
   letter-spacing: -.2px;
   color: #101a3d;
 }
-.seksjon-tittel-solo { margin-bottom: 16px; }
+/* Egen spesifisitet (.panel h2…) så margin-bottom ikke nulles av margin:0 over. */
+.panel h2.seksjon-tittel-solo { margin-bottom: 14px; }
 .seksjon-ikon {
   flex: 0 0 auto;
   width: 30px;
