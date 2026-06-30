@@ -24,7 +24,7 @@ const state = {
   noyaktigData: false,
   // Hver bruker: { alderValg, data, hastighet, dataGb } (data = kategori, dataGb = eksakt GB)
   brukere: [nyBruker()],
-  // Kundeprioritet per dimensjon (indeks i NIVAER). Standard: pris svært høy, resten lav.
+  // Kundeprioritet per dimensjon (indeks i NIVAER). Standard: pris svært viktig, resten ikke viktig.
   prioritet: { pris: 3, dekning: 0, sikkerhet: 0 },
   // Vis prioritet-panelet (kundepreferanser utover pris) på hjemskjermen. Standard: på.
   visPrioritet: true,
@@ -82,10 +82,10 @@ const MERKE_DEFAULT = { bg1: "#00733e", bg2: "#015e33", accent: "#89bb33", merke
 // klart mest; "Lav" = 0 poeng = teller ikke (dimensjonen påvirker ikke valget).
 // Er alt satt til Lav, faller vi tilbake til ren pris (se prioritetTilVekter).
 const NIVAER = [
-  { label: "Lav", poeng: 0 },
-  { label: "Middels", poeng: 3 },
-  { label: "Høy", poeng: 6 },
-  { label: "Svært høy", poeng: 10 },
+  { label: "Ikke viktig", poeng: 0 },
+  { label: "Litt viktig", poeng: 3 },
+  { label: "Viktig", poeng: 6 },
+  { label: "Svært viktig", poeng: 10 },
 ];
 const PRIORITET_DIMS = [
   { key: "pris", navn: "Pris" },
@@ -274,10 +274,13 @@ function oppdaterPrioritetSynlighet() {
 }
 
 function oppdaterPrioritetSammendrag() {
-  const deler = PRIORITET_DIMS.map(
-    (d) => `${d.navn.toLowerCase()}: ${NIVAER[state.prioritet[d.key]].label.toLowerCase()}`
+  // Vis hver dimensjon som en boble/pille (Pris · Høy), med nivå som data-attr
+  // slik at CSS kan tone aktive (over Lav) tydeligere enn de som ikke teller.
+  const piller = PRIORITET_DIMS.map(
+    (d) =>
+      `<span class="prioritet-pille" data-niva="${state.prioritet[d.key]}"><b>${d.navn}</b> · ${NIVAER[state.prioritet[d.key]].label}</span>`
   );
-  document.getElementById("prioritetSammendrag").textContent = deler.join(" · ");
+  document.getElementById("prioritetSammendrag").innerHTML = piller.join("");
 }
 
 // Gjør prioritetsnivåene om til normaliserte vekter + sikkerhetViktig-flagg.
