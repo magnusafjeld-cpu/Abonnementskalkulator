@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=49" />
+  <link rel="stylesheet" href="style.css?v=50" />
 </head>
 <body>
   <header>
@@ -94,7 +94,12 @@
     <div id="inputVisning">
       <section class="panel">
         <div class="panel-topp">
-          <h2>Kundens situasjon i dag</h2>
+          <h2 class="seksjon-tittel">
+            <span class="seksjon-ikon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            Kundens situasjon i dag
+          </h2>
           <button type="button" id="nyKundeKnapp" class="ny-kunde" title="Tøm alle felt for ny kunde">↺ Ny kunde</button>
         </div>
 
@@ -124,23 +129,32 @@
             </button>
           </div>
         </div>
+      </section>
 
-        <div class="felt" id="prioritetFelt">
-          <details id="prioritetPanel" class="prioritet-panel">
-            <summary>
-              <span class="prioritet-tittel">Hva er viktigst for kunden?</span>
-              <span id="prioritetSammendrag" class="prioritet-sammendrag"></span>
-            </summary>
-            <div id="prioritetRader" class="prioritet-rader"></div>
-          </details>
-        </div>
+      <section class="panel panel-flush" id="prioritetFelt">
+        <details id="prioritetPanel" class="prioritet-panel">
+          <summary>
+            <span class="seksjon-tittel">
+              <span class="seksjon-ikon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="21" y2="8"/><line x1="3" y1="16" x2="21" y2="16"/><circle cx="9" cy="8" r="2.6" fill="#eef1f8"/><circle cx="15" cy="16" r="2.6" fill="#eef1f8"/></svg>
+              </span>
+              Hva er viktigst for kunden?
+            </span>
+            <span id="prioritetSammendrag" class="prioritet-sammendrag"></span>
+          </summary>
+          <div id="prioritetRader" class="prioritet-rader"></div>
+        </details>
+      </section>
 
-        <div class="felt">
-          <label>Personer i husstanden</label>
-          <div id="brukere"></div>
-          <button type="button" id="leggTil" class="legg-til">+ Legg til person</button>
-        </div>
-
+      <section class="panel">
+        <h2 class="seksjon-tittel seksjon-tittel-solo">
+          <span class="seksjon-ikon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          Personer i husstanden
+        </h2>
+        <div id="brukere"></div>
+        <button type="button" id="leggTil" class="legg-til">+ Legg til person</button>
       </section>
 
       <button type="button" id="anbefalKnapp" class="cta">Gi anbefaling →</button>
