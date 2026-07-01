@@ -20,7 +20,7 @@
     "telia_5":         { "kode": "TE5GBTILNY",    "binding": "Tilbehørsbinding" },
     "telia_10":        { "kode": "TE10GBTILNY",   "binding": "Tilbehørsbinding" },
     "telia_x_start":   { "kode": "TEXSTATILNY",   "binding": "Tilbehørsbinding" },
-    "telia_x_kampanje":{ "kode": "TEXSTART12379", "binding": "Tilbehørsbinding" },
+    "telia_x_kampanje":{ "kode": "TEXSTART12KAM", "binding": "Tilbehørsbinding" },
     "telia_x_basis":   { "kode": "TEXBASTILNY",   "binding": "Tilbehørsbinding" },
     "telia_x_max":     { "kode": "TEXMAXTILNY",   "binding": "Tilbehørsbinding" },
     "telia_x_ung":     { "kode": "TEXUNGTILNY",   "binding": "Tilbehørsbinding" },
