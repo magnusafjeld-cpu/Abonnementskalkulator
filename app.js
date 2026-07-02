@@ -604,7 +604,27 @@ function visTilbud(leverandor) {
   if (!sisteResultat) return;
   const lev = sisteResultat.leverandorer.find((l) => l.leverandor === leverandor);
   if (!lev || !lev.brukerPlaner.length) return;
-  const data = byggTilbudskoder(lev.brukerPlaner);
+  visTilbudFor(lev.brukerPlaner, lev.leverandor);
+}
+
+// K i oversikten: samme kode-vindu for abonnementene selgeren har valgt der.
+function hurtigVisTilbud() {
+  const valg = [];
+  hurtig.valgte.forEach((v) => {
+    const p = hurtigPlan(v.id);
+    if (!p) return;
+    for (let i = 0; i < v.antall; i++) {
+      valg.push({ plan: p, pris: planPris(p, null), alder: null });
+    }
+  });
+  if (!valg.length) return; // ingen abonnement valgt ennå
+  visTilbudFor(valg, valg[0].plan.leverandor);
+}
+
+// Felles rendering av kode-vinduet for en liste [{plan, pris, alder}] –
+// brukes både fra resultatsiden (Velg tilbud) og oversikten (K).
+function visTilbudFor(brukerPlaner, leverandorNavn) {
+  const data = byggTilbudskoder(brukerPlaner);
   const innhold = document.getElementById("tilbudInnhold");
 
   const harBinding = data.rader.some(
@@ -615,7 +635,7 @@ function visTilbud(leverandor) {
     r.koder.some((k) => k.type === "mangler")
   );
 
-  let html = `<p class="tilbud-intro">Legg inn disse kodene i Blueberry for <b>${lev.leverandor}</b>${
+  let html = `<p class="tilbud-intro">Legg inn disse kodene i Blueberry for <b>${leverandorNavn}</b>${
     data.peak ? ' <span class="tilbud-peak">☀ Sommerpeak aktiv</span>' : ""
   }</p>`;
   if (manglerKode.length) {
@@ -871,20 +891,419 @@ function haandterLeggTilAbo() {
   oppdater();
 }
 
-// ---- Visnings-håndtering (input / resultat / pris) ----------
-const VISNING_ID = { input: "inputVisning", resultat: "resultatVisning", pris: "prisVisning" };
+// ---- Hurtig pris-sammenligning (toppselger) ------------------
+// Erstatter selgerens manuelle kalkulator: dagens beløp til venstre, «med oss»
+// til høyre. Ingen anbefaling – kun rask visualisering av prisendringen.
+// Høyresiden er bevisst nøytral (kun beløpsfelt) så kunden ikke ser at
+// selgeren sikter mot en bestemt operatør: hurtigtastene Q/W/E henter frem
+// abonnementene til Telenor/Telia/ice, og samme tast skjuler dem igjen.
+// Familierabatt regnes automatisk per operatør.
+const HURTIG_TASTER = { q: "Telenor", w: "Telia", e: "ice" };
+// Hurtigvalg-beløp på «i dag»-siden – vanlige månedspriser, ett trykk = lagt til.
+const HURTIG_FORSLAG = [199, 249, 299, 349, 399, 449, 499, 549, 599, 649, 699, 799];
+// Kundens operatør i dag: de største/vanligste øverst, egne nett (Telenor/
+// Telia/ice) bevisst nederst. Kun til visning – påvirker ikke beregningen.
+const HURTIG_DAGENS_OPERATORER = [
+  "Talkmore", "OneCall", "Chilimobil",
+  "MyCall", "Lycamobile", "Happybytes",
+  "Telenor", "Telia", "ice",
+];
+const hurtig = {
+  belop: [],      // dagens beløp (kr per linje)
+  nyBelop: [],    // manuelle beløp på «med oss»-siden
+  valgte: [],     // [{ id, antall }] – valgte abonnement hos oss
+  lev: null,      // operatør vist via Q/W/E (null = skjult/nøytral)
+  dagensLev: null, // kundens operatør i dag (vises i etikett og på linjene)
+  // Ren visning (Enter veksler): skjuler beløpsfelt, hurtigvalg og velgere,
+  // slik at kun linjene, summene og differansen står igjen for kunden.
+  presentasjon: false,
+  // S veksler: skjul operatørnavnene i etiketter, linjer og sum-tekster.
+  skjulOperator: false,
+};
+
+// ---- Fordels-sammenligning (hurtigtast F) --------------------
+// Kundevennlig tabell som viser at det viktigste er LIKT hos dagens og ny
+// operatør – målet er å ufarliggjøre byttet, ikke å skryte av den nye.
+// Fri tale/SMS/MMS og Roam Like Home er standard hos alle norske operatører.
+// 5G og sky-lagring per operatør: VERIFISER ved endringer hos operatørene.
+// Ingen av MVNO-ene har sky-tjeneste; sky-raden vises kun når kunden bytter
+// TIL Telenor (Min Sky) eller Telia (Telia Sky).
+const OPERATOR_FAKTA = {
+  Telenor:    { femG: true,  sky: "Min Sky" },
+  Telia:      { femG: true,  sky: "Telia Sky" },
+  ice:        { femG: true,  sky: null },
+  Talkmore:   { femG: true,  sky: null },
+  OneCall:    { femG: true,  sky: null },
+  Chilimobil: { femG: true,  sky: null },
+  MyCall:     { femG: true,  sky: null },
+  Lycamobile: { femG: false, sky: null },
+  Happybytes: { femG: true,  sky: null },
+};
+
+// Ny operatør å sammenligne mot: de valgte abonnementene (én operatør om
+// gangen), ellers operatøren som er fremme via Q/W/E.
+function hurtigNyLev() {
+  const ny = hurtigNyTotal();
+  return ny.leverandorer.length === 1 ? ny.leverandorer[0] : hurtig.lev;
+}
+
+// Brukes både fra oversikten (F der) og fra vanlig kalkulator (F på
+// resultatsiden): dagens operatør (kan være null -> generisk «I dag») mot
+// den nye/anbefalte operatøren.
+function visFordeler(dagens, nyLev) {
+  if (!nyLev) return; // ingen ny operatør å sammenligne mot ennå
+  // Uten valgt dagens-operatør: generisk «I dag»-kolonne (radene under er
+  // standard hos alle norske operatører).
+  const generisk = { femG: true, sky: null };
+  const dF = OPERATOR_FAKTA[dagens] || generisk;
+  const nF = OPERATOR_FAKTA[nyLev] || generisk;
+
+  const rader = [
+    { navn: "Fri tale, SMS og MMS", v: "✓", h: "✓" },
+    { navn: "Roam Like Home – bruk i EU/EØS", v: "✓", h: "✓" },
+    { navn: "5G-nett", v: dF.femG ? "✓" : "–", h: nF.femG ? "✓" : "–", gevinst: "5G" },
+  ];
+  if (nF.sky) {
+    rader.push({
+      navn: "Ubegrenset lagring av bilder og video",
+      v: dF.sky ? `✓ ${dF.sky}` : "–",
+      h: `✓ ${nF.sky}`,
+      gevinst: nF.sky,
+    });
+  }
+
+  // Oppsummeringen understreker paritet; eventuelle plusser nevnes som bonus.
+  const gevinster = rader
+    .filter((r) => r.h.startsWith("✓") && r.v === "–")
+    .map((r) => r.gevinst || r.navn);
+  const oppsummering = gevinster.length
+    ? `Alt det viktigste er likt – i tillegg får kunden ${gevinster.join(" og ")}.`
+    : "Ingen forskjell på det viktigste – kunden mister ingenting.";
+
+  document.getElementById("fordelInnhold").innerHTML = `
+    <div class="fordel-rad fordel-topp">
+      <span></span>
+      <b>${dagens || "I dag"}</b>
+      <b>${nyLev}</b>
+    </div>
+    ${rader
+      .map(
+        (r) => `<div class="fordel-rad">
+          <span>${r.navn}</span>
+          <span class="${r.v === "–" ? "fordel-mangler" : "fordel-har"}">${r.v}</span>
+          <span class="${r.h === "–" ? "fordel-mangler" : "fordel-har"}">${r.h}</span>
+        </div>`
+      )
+      .join("")}
+    <p class="fordel-oppsummering">${oppsummering}</p>`;
+  document.getElementById("fordelOverlay").hidden = false;
+}
+
+// Ny kunde: tøm alt og start på nytt. Brukes av ↺-knappen og hurtigtasten R.
+function hurtigNullstill() {
+  hurtig.belop = [];
+  hurtig.nyBelop = [];
+  hurtig.valgte = [];
+  hurtig.lev = null;
+  hurtig.dagensLev = null;
+  hurtig.presentasjon = false;
+  hurtig.skjulOperator = false;
+  document.getElementById("hurtigBelop").value = "";
+  document.getElementById("hurtigNyBelop").value = "";
+  renderHurtig();
+  document.getElementById("hurtigBelop").focus();
+}
+
+// Bytte til en (annen) operatør fjerner valg som ikke hører til den – selgeren
+// sammenligner én operatør om gangen, og gamle valg skal ikke henge igjen i
+// summen. Å skjule listen (samme tast / Enter / Escape) beholder valgene.
+function hurtigVisLev(lev) {
+  if (lev) {
+    // Å hente frem en operatør avbryter ren visning – selgeren bygger videre.
+    hurtig.presentasjon = false;
+    hurtig.valgte = hurtig.valgte.filter((v) => {
+      const p = hurtigPlan(v.id);
+      return p && p.leverandor === lev;
+    });
+  }
+  hurtig.lev = lev;
+  renderHurtig();
+}
+
+// Pris per linje (per SIM) med familierabatt fordelt, så listen kan vise
+// abonnementene enkeltvis med reell pris (f.eks. 3× Telia X Start = 449,
+// 349, 349). Speiler familietotal(): medlemspris-modellen har egen fordeling,
+// dyreste-full-modellen gir dyreste SIM full pris og trekker rabatt fra de
+// øvrige kvalifiserte (maks 'maks_antall_med_rabatt'). Summen av linjene er
+// alltid lik familietotal for gruppen.
+function hurtigLinjePriser(lev, valg) {
+  const regel = FAMILIERABATT[lev];
+  if (regel && regel.modell === "familiemedlem_fastpris")
+    return medlemsprisFordeling(valg, regel);
+  const harPerPlan = valg.some((v) => v.plan.familierabatt_kr != null);
+  if (!(regel && regel.modell === "dyreste_full_plantype") && !harPerPlan)
+    return valg.map((v) => v.pris);
+  const priser = valg.map((v) => v.pris);
+  const rekkefolge = valg
+    .map((v, i) => i)
+    .sort((a, b) => valg[b].pris - valg[a].pris); // dyreste først
+  const maks = (regel && regel.maks_antall_med_rabatt) ?? Infinity;
+  let gitt = 0;
+  rekkefolge.forEach((i, plass) => {
+    const v = valg[i];
+    const rab = familierabattKrFor(v.plan, regel);
+    if (plass === 0 || !girFamilierabatt(v.plan) || rab <= 0 || gitt >= maks) return;
+    priser[i] = Math.max(0, v.pris - rab);
+    gitt++;
+  });
+  return priser;
+}
+
+function hurtigPlan(id) {
+  return ABONNEMENTER.find((p) => p.id === id);
+}
+
+// Ny totalpris: grupper valgte per operatør og bruk samme familierabatt-
+// beregning som resten av appen (familietotal). Brutto = ren listepris-sum,
+// slik at rabatten kan vises som egen linje. Manuelle beløp legges rett til.
+function hurtigNyTotal() {
+  const perLev = {};
+  hurtig.valgte.forEach((v) => {
+    const p = hurtigPlan(v.id);
+    if (!p) return;
+    for (let i = 0; i < v.antall; i++) {
+      (perLev[p.leverandor] = perLev[p.leverandor] || []).push({
+        plan: p,
+        pris: planPris(p, null),
+        alder: null,
+      });
+    }
+  });
+  const manuelt = hurtig.nyBelop.reduce((s, b) => s + b, 0);
+  let total = manuelt;
+  let brutto = manuelt;
+  Object.entries(perLev).forEach(([lev, valg]) => {
+    total += familietotal(lev, valg);
+    brutto += valg.reduce((s, v) => s + v.pris, 0);
+  });
+  return { total, brutto, rabatt: brutto - total, leverandorer: Object.keys(perLev) };
+}
+
+function hurtigIdagSum() {
+  return hurtig.belop.reduce((s, b) => s + b, 0);
+}
+
+function renderHurtig() {
+  // Abonnement hos operatøren hentet frem med Q/W/E, billigst først – ett
+  // trykk = legg til. Uten valgt operatør holdes høyresiden helt nøytral.
+  const planerEl = document.getElementById("hurtigPlaner");
+  planerEl.hidden = !hurtig.lev;
+  const antallFor = (id) => {
+    const v = hurtig.valgte.find((x) => x.id === id);
+    return v ? v.antall : 0;
+  };
+  const planer = hurtig.lev
+    ? ABONNEMENTER.filter((p) => p.leverandor === hurtig.lev)
+        .sort((a, b) => planPris(a, null) - planPris(b, null))
+    : [];
+  planerEl.innerHTML = planer
+    .map((p) => {
+      const n = antallFor(p.id);
+      return `<button type="button" class="hurtig-plan${n ? " valgt" : ""}" data-id="${p.id}">
+        ${n ? `<span class="hurtig-antall">${n}</span>` : ""}
+        <span class="navn">${p.navn}</span>
+        <span class="pris">${kr(planPris(p, null))}</span>
+      </button>`;
+    })
+    .join("");
+
+  // Ren visning (Enter): beløpsfelt og alle velgere skjules på begge sider –
+  // kun linjer, summer og differanse står igjen.
+  document
+    .querySelectorAll("#hurtigVisning .hurtig-input-rad")
+    .forEach((el) => (el.hidden = hurtig.presentasjon));
+
+  // Venstre: kundens operatør i dag (knapper, ikke dropdown) og hurtigvalg-
+  // beløp. Høyre har samme hurtigvalg-beløp – de viker for abo-listen (Q/W/E).
+  const dagensEl = document.getElementById("hurtigDagensLev");
+  dagensEl.hidden = hurtig.presentasjon;
+  dagensEl.innerHTML = HURTIG_DAGENS_OPERATORER.map(
+    (navn) =>
+      `<button type="button" class="hurtig-lev-knapp${
+        hurtig.dagensLev === navn ? " aktiv" : ""
+      }" data-lev="${navn}">${navn}</button>`
+  ).join("");
+  const belopvalgHtml = (side) =>
+    HURTIG_FORSLAG.map(
+      (b) => `<button type="button" class="hurtig-belopvalg" data-side="${side}" data-belop="${b}">${b}</button>`
+    ).join("");
+  const forslagEl = document.getElementById("hurtigForslag");
+  forslagEl.hidden = hurtig.presentasjon;
+  forslagEl.innerHTML = belopvalgHtml("idag");
+  const forslagNyEl = document.getElementById("hurtigForslagNy");
+  forslagNyEl.hidden = hurtig.presentasjon || !!hurtig.lev;
+  forslagNyEl.innerHTML = belopvalgHtml("ny");
+
+  // Operatørnavnene står tydelig i etikettene («OneCall» / «Telia») – S
+  // veksler dem av når selgeren ikke vil avsløre operatøren ennå.
+  const visNavn = !hurtig.skjulOperator;
+  const idagEtikett = document.getElementById("hurtigIdagEtikett");
+  idagEtikett.textContent = visNavn && hurtig.dagensLev ? hurtig.dagensLev : "I dag";
+  idagEtikett.classList.toggle("hurtig-etikett-navn", visNavn && !!hurtig.dagensLev);
+  const nyLevNavn = visNavn ? hurtigNyLev() : null;
+  const medOssEtikett = document.getElementById("hurtigMedOssEtikett");
+  medOssEtikett.innerHTML = `${nyLevNavn || "Med oss"}${
+    hurtig.presentasjon ? "" : ' <span class="hurtig-tast-hint" aria-hidden="true">Q·W·E</span>'
+  }`;
+  medOssEtikett.classList.toggle("hurtig-etikett-navn", !!nyLevNavn);
+
+  // Med valgt dagens-operatør vises navnet på hver linje («OneCall  349 kr»)
+  // – samme struktur som abo-linjene til høyre.
+  const linjeNavn = visNavn ? hurtig.dagensLev : null;
+  document.getElementById("hurtigIdagListe").innerHTML = hurtig.belop
+    .map(
+      (b, i) => `<div class="hurtig-linje">
+        ${
+          linjeNavn
+            ? `<span class="hurtig-linje-navn">${linjeNavn}</span>
+               <span class="hurtig-linje-pris">${kr(b)}</span>`
+            : `<span>${kr(b)}</span>`
+        }
+        <button type="button" class="hurtig-fjern" data-side="idag" data-i="${i}" aria-label="Fjern beløp">✕</button>
+      </div>`
+    )
+    .join("");
+  document.getElementById("hurtigIdagSum").textContent = kr(hurtigIdagSum());
+  // Valgt dagens-operatør vises i sum-etiketten (speiler «Sum med Telia»).
+  document.getElementById("hurtigIdagSumTekst").textContent =
+    linjeNavn ? `Sum i dag – ${linjeNavn}` : "Sum i dag";
+
+  // Høyre: valgte abonnement én linje per SIM, med familierabatt fordelt i
+  // linjeprisen (3× Telia X Start vises som 449 + 349 + 349) – symmetrisk
+  // med beløpslinjene til venstre. ✕ fjerner én SIM.
+  const grupper = {};
+  hurtig.valgte.forEach((v) => {
+    const p = hurtigPlan(v.id);
+    if (!p) return;
+    for (let i = 0; i < v.antall; i++) {
+      (grupper[p.leverandor] = grupper[p.leverandor] || []).push({
+        plan: p,
+        pris: planPris(p, null),
+        alder: null,
+        id: v.id,
+      });
+    }
+  });
+  const planLinjer = [];
+  Object.entries(grupper).forEach(([lev, valg]) => {
+    const priser = hurtigLinjePriser(lev, valg);
+    valg.forEach((v, i) => planLinjer.push({ id: v.id, navn: v.plan.navn, pris: priser[i] }));
+  });
+  document.getElementById("hurtigValgte").innerHTML =
+    planLinjer
+      .map(
+        (l) => `<div class="hurtig-linje">
+          <span class="hurtig-linje-navn">${l.navn}</span>
+          <span class="hurtig-linje-pris">${kr(l.pris)}</span>
+          <button type="button" class="hurtig-fjern" data-plan="${l.id}" aria-label="Fjern abonnement">✕</button>
+        </div>`
+      )
+      .join("") +
+    hurtig.nyBelop
+      .map(
+        (b, i) => `<div class="hurtig-linje">
+          <span>${kr(b)}</span>
+          <button type="button" class="hurtig-fjern" data-side="ny" data-i="${i}" aria-label="Fjern beløp">✕</button>
+        </div>`
+      )
+      .join("");
+
+  const ny = hurtigNyTotal();
+  document.getElementById("hurtigNySum").textContent = kr(ny.total);
+  // Nøytral etikett så lenge manuelle beløp er med, flere operatører er valgt,
+  // eller operatørnavnene er skjult med S.
+  document.getElementById("hurtigNySumTekst").textContent =
+    visNavn && ny.leverandorer.length === 1 && !hurtig.nyBelop.length
+      ? `Sum med ${ny.leverandorer[0]}`
+      : "Sum med oss";
+  // Nota holder alltid plassen sin (min-height i CSS) så sum-radene på begge
+  // sider ligger på nøyaktig samme linje.
+  document.getElementById("hurtigRabattNote").textContent =
+    ny.rabatt > 0 ? `Familierabatt trukket fra: −${kr(ny.rabatt)}/mnd` : "";
+
+  // Differansen – det kunden skal se
+  const diff = document.getElementById("hurtigDiff");
+  const idag = hurtigIdagSum();
+  if (!idag || (!hurtig.valgte.length && !hurtig.nyBelop.length)) {
+    diff.className = "hurtig-diff noytral";
+    diff.innerHTML = "Legg inn dagens pris og velg abonnement – differansen vises her.";
+  } else {
+    const spart = idag - ny.total;
+    if (spart > 0) {
+      diff.className = "hurtig-diff spare";
+      diff.innerHTML = `Kunden sparer <b>${kr(spart)}/mnd</b><span class="hurtig-aar">${kr(spart * 12)} i året</span>`;
+    } else if (spart < 0) {
+      diff.className = "hurtig-diff dyrere";
+      diff.innerHTML = `<b>${kr(-spart)}/mnd</b> mer enn i dag<span class="hurtig-aar">${kr(-spart * 12)} i året</span>`;
+    } else {
+      diff.className = "hurtig-diff noytral";
+      diff.innerHTML = "Lik pris som i dag.";
+    }
+  }
+}
+
+// Beløpsfeltene godtar flere beløp på én gang ("399+299" eller "399 299").
+// Samme funksjon betjener begge sider – 'liste' er hurtig.belop eller
+// hurtig.nyBelop.
+function hurtigLeggTilBelop(feltId, liste) {
+  const felt = document.getElementById(feltId);
+  const verdier = felt.value
+    .split(/[+,\s]+/)
+    .map((t) => Number(t.replace(",", ".")))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  if (verdier.length) {
+    liste.push(...verdier);
+    renderHurtig();
+  }
+  felt.value = "";
+  felt.focus();
+}
+
+function hurtigEndreAntall(id, steg) {
+  const v = hurtig.valgte.find((x) => x.id === id);
+  if (!v && steg > 0) hurtig.valgte.push({ id, antall: 1 });
+  else if (v) {
+    v.antall += steg;
+    if (v.antall <= 0) hurtig.valgte = hurtig.valgte.filter((x) => x.id !== id);
+  }
+  renderHurtig();
+}
+
+// ---- Visnings-håndtering (input / resultat / pris / hurtig) --
+const VISNING_ID = {
+  input: "inputVisning",
+  resultat: "resultatVisning",
+  pris: "prisVisning",
+  hurtig: "hurtigVisning",
+};
 let forrigeVisning = "input";
 
 function visVisning(navn) {
   Object.entries(VISNING_ID).forEach(([k, id]) => {
     document.getElementById(id).hidden = k !== navn;
   });
+  // Hurtig-visningen har tilbakeknappen i headeren (ved tittelen) i stedet
+  // for over panelet, så den ikke tar plass fra innholdet.
+  document.getElementById("hurtigTilbakeHeader").hidden = navn !== "hurtig";
   window.scrollTo(0, 0);
 }
 
 // Prisoversikt åpnes fra logoen og returnerer dit man kom fra.
 function aapnePris() {
-  forrigeVisning = document.getElementById("resultatVisning").hidden ? "input" : "resultat";
+  const synlig = Object.keys(VISNING_ID).find(
+    (k) => !document.getElementById(VISNING_ID[k]).hidden
+  );
+  forrigeVisning = synlig && synlig !== "pris" ? synlig : "input";
   renderPrisoversikt();
   visVisning("pris");
 }
@@ -1407,15 +1826,204 @@ async function start() {
   document.getElementById("logoKnapp").addEventListener("click", aapnePris);
   document.getElementById("tilbakeKnapp").addEventListener("click", () => visVisning(forrigeVisning));
 
-  // Guide / hjelp («i»-knapp i headeren)
+  // Hurtig pris-sammenligning (⚡ i headeren)
+  document.getElementById("hurtigKnapp").addEventListener("click", () => {
+    renderHurtig();
+    visVisning("hurtig");
+    document.getElementById("hurtigBelop").focus();
+  });
+  document.getElementById("hurtigTilbakeHeader").addEventListener("click", () => visVisning("input"));
+  document.getElementById("hurtigNullstill").addEventListener("click", hurtigNullstill);
+  // Berørings-alternativ (uten Enter-tast): trykk på «I dag»-etiketten
+  // veksler ren visning – samme som Enter.
+  document.getElementById("hurtigIdagEtikett").addEventListener("click", () => {
+    hurtig.presentasjon = !hurtig.presentasjon;
+    if (hurtig.presentasjon) hurtig.lev = null;
+    renderHurtig();
+  });
+  document.getElementById("hurtigLeggTil").addEventListener("click", () =>
+    hurtigLeggTilBelop("hurtigBelop", hurtig.belop)
+  );
+  document.getElementById("hurtigBelop").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") hurtigLeggTilBelop("hurtigBelop", hurtig.belop);
+  });
+  document.getElementById("hurtigNyLeggTil").addEventListener("click", () =>
+    hurtigLeggTilBelop("hurtigNyBelop", hurtig.nyBelop)
+  );
+  document.getElementById("hurtigNyBelop").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") hurtigLeggTilBelop("hurtigNyBelop", hurtig.nyBelop);
+  });
+
+  // Diskrete hurtigtaster: Q/W/E henter frem operatørens abonnement, samme
+  // tast (eller Enter/Escape) skjuler dem igjen – tilbake til den symmetriske
+  // visningen. Kun uten modifikatorer, så Cmd/Ctrl-snarveier ikke kapres.
+  // Beløpsfeltene tar bare tall, så tastene fanges trygt også med fokus i felt.
+  document.addEventListener("keydown", (e) => {
+    if (document.getElementById("hurtigVisning").hidden) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    // Åpne overlay (fordeler / info): F/Escape lukker, øvrige hurtigtaster er
+    // passive så tilstanden bak ikke endres mens kunden ser på.
+    const fordelOverlay = document.getElementById("fordelOverlay");
+    if (!fordelOverlay.hidden) {
+      if (e.key.toLowerCase() === "f" || e.key === "Escape") {
+        e.preventDefault();
+        fordelOverlay.hidden = true;
+      }
+      return;
+    }
+    const hurtigGuideOverlay = document.getElementById("hurtigGuideOverlay");
+    if (!hurtigGuideOverlay.hidden) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        hurtigGuideOverlay.hidden = true;
+      }
+      return;
+    }
+    const tilbudOverlay = document.getElementById("tilbudOverlay");
+    if (!tilbudOverlay.hidden) {
+      if (e.key.toLowerCase() === "k" || e.key === "Escape") {
+        e.preventDefault();
+        tilbudOverlay.hidden = true;
+      }
+      return;
+    }
+    const lev = HURTIG_TASTER[e.key.toLowerCase()];
+    if (lev) {
+      e.preventDefault();
+      hurtigVisLev(hurtig.lev === lev ? null : lev);
+    } else if (e.key.toLowerCase() === "k") {
+      // K = kode-vinduet (Blueberry) for de valgte abonnementene
+      e.preventDefault();
+      hurtigVisTilbud();
+    } else if (e.key.toLowerCase() === "f") {
+      // F = «Dette er inkludert»-tabellen (dagens vs. ny operatør)
+      e.preventDefault();
+      visFordeler(hurtig.dagensLev, hurtigNyLev());
+    } else if (e.key.toLowerCase() === "s") {
+      // S = skjul/vis operatørnavnene (etiketter, linjer og sum-tekster)
+      e.preventDefault();
+      hurtig.skjulOperator = !hurtig.skjulOperator;
+      renderHurtig();
+    } else if (e.key.toLowerCase() === "r") {
+      // R = ny kunde (samme som ↺ Nullstill). Cmd/Ctrl+R (reload) er
+      // allerede sluppet gjennom av modifikator-vakten over.
+      e.preventDefault();
+      hurtigNullstill();
+    } else if (e.key === "Enter") {
+      // Enter i beløpsfeltene legger til beløp (håndteres på feltet) og skal
+      // aldri veksle visning. Ellers veksler Enter ren visning: felt og
+      // velgere bort – Enter igjen henter dem tilbake. preventDefault
+      // hindrer at en fokusert knapp «klikkes» på nytt.
+      if (e.target instanceof HTMLInputElement) return;
+      e.preventDefault();
+      hurtig.presentasjon = !hurtig.presentasjon;
+      if (hurtig.presentasjon) hurtig.lev = null;
+      renderHurtig();
+    } else if (e.key === "Escape" && hurtig.lev) {
+      e.preventDefault();
+      hurtigVisLev(null);
+    }
+  });
+  // Fordels-overlayet lukkes med ✕ eller klikk utenfor (i tillegg til F/Escape).
+  const fordelOverlay = document.getElementById("fordelOverlay");
+  document.getElementById("fordelLukk").addEventListener("click", () => (fordelOverlay.hidden = true));
+  fordelOverlay.addEventListener("click", (e) => {
+    if (e.target === fordelOverlay) fordelOverlay.hidden = true;
+  });
+
+  // Berørings-alternativ uten synlige operatørnavn: trykk på «Med oss»-
+  // etiketten for å bla ingen → Telenor → Telia → ice → ingen.
+  document.getElementById("hurtigMedOssEtikett").addEventListener("click", () => {
+    const rekke = [null, ...VARE_LEVERANDORER];
+    hurtigVisLev(rekke[(rekke.indexOf(hurtig.lev) + 1) % rekke.length]);
+  });
+
+  // Delegert: dagens operatør, hurtigvalg-beløp, abonnement-taster, fjern
+  // linje (begge sider)
+  document.getElementById("hurtigVisning").addEventListener("click", (e) => {
+    const levKnapp = e.target.closest(".hurtig-lev-knapp");
+    if (levKnapp) {
+      // Samme knapp igjen = fjern valget.
+      hurtig.dagensLev = hurtig.dagensLev === levKnapp.dataset.lev ? null : levKnapp.dataset.lev;
+      renderHurtig();
+      return;
+    }
+    const belopvalg = e.target.closest(".hurtig-belopvalg");
+    if (belopvalg) {
+      const liste = belopvalg.dataset.side === "ny" ? hurtig.nyBelop : hurtig.belop;
+      liste.push(Number(belopvalg.dataset.belop));
+      renderHurtig();
+      return;
+    }
+    const plan = e.target.closest(".hurtig-plan");
+    if (plan) {
+      hurtigEndreAntall(plan.dataset.id, 1);
+      return;
+    }
+    const fjern = e.target.closest(".hurtig-fjern");
+    if (fjern) {
+      if (fjern.dataset.plan) {
+        hurtigEndreAntall(fjern.dataset.plan, -1); // fjern én SIM
+      } else {
+        const liste = fjern.dataset.side === "ny" ? hurtig.nyBelop : hurtig.belop;
+        liste.splice(Number(fjern.dataset.i), 1);
+        renderHurtig();
+      }
+    }
+  });
+
+  // Guide / hjelp («i»-knapp i headeren). Inne i oversikten viser (i) heller
+  // infoen om oversikten – oppsett og alle hurtigtastene.
   const guideOverlay = document.getElementById("guideOverlay");
-  document.getElementById("guideKnapp").addEventListener("click", () => (guideOverlay.hidden = false));
+  const hurtigGuideOverlay = document.getElementById("hurtigGuideOverlay");
+  document.getElementById("guideKnapp").addEventListener("click", () => {
+    if (!document.getElementById("hurtigVisning").hidden) {
+      hurtigGuideOverlay.hidden = false;
+    } else {
+      guideOverlay.hidden = false;
+    }
+  });
+  document.getElementById("hurtigGuideLukk").addEventListener("click", () => (hurtigGuideOverlay.hidden = true));
+  hurtigGuideOverlay.addEventListener("click", (e) => {
+    if (e.target === hurtigGuideOverlay) hurtigGuideOverlay.hidden = true;
+  });
   document.getElementById("guideLukk").addEventListener("click", () => (guideOverlay.hidden = true));
   guideOverlay.addEventListener("click", (e) => {
     if (e.target === guideOverlay) guideOverlay.hidden = true;
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !guideOverlay.hidden) guideOverlay.hidden = true;
+  });
+
+  // F i vanlig kalkulator: «Dette er inkludert»-tabellen for dagens
+  // leverandør (nedtrekksmenyen) mot den ANBEFALTE operatøren. Virker på
+  // resultatsiden – oversikten har sin egen F-håndtering (lytteren over).
+  document.addEventListener("keydown", (e) => {
+    if (!document.getElementById("hurtigVisning").hidden) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const fordelOverlay = document.getElementById("fordelOverlay");
+    if (!fordelOverlay.hidden) {
+      if (e.key.toLowerCase() === "f" || e.key === "Escape") {
+        e.preventDefault();
+        fordelOverlay.hidden = true;
+      }
+      return;
+    }
+    if (e.key.toLowerCase() !== "f") return;
+    // Ikke kapre F i skjemafelt – hovedskjermen har ekte tekstfelt og
+    // nedtrekkslister (der F hopper til «Fjordkraft Mobil» o.l.).
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLSelectElement ||
+      e.target instanceof HTMLTextAreaElement
+    )
+      return;
+    if (document.getElementById("resultatVisning").hidden) return;
+    if (!sisteResultat || !sisteResultat.anbefalt) return;
+    e.preventDefault();
+    const valgt = document.getElementById("leverandor").value;
+    const dagens = valgt && valgt !== "Annen / vet ikke" ? valgt : null;
+    visFordeler(dagens, sisteResultat.anbefalt.leverandor);
   });
 
   oppdater();

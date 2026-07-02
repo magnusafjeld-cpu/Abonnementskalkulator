@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=58" />
+  <link rel="stylesheet" href="style.css?v=67" />
 </head>
 <body>
   <header>
@@ -23,7 +23,15 @@
       <div class="sub">Telenor · Telia · ice</div>
     </div>
 
-    <button type="button" id="guideKnapp" class="guide-knapp" aria-label="Guide / slik bruker du verktøyet" title="Guide">
+    <button type="button" id="hurtigTilbakeHeader" class="header-tilbake" hidden>← Tilbake</button>
+
+    <button type="button" id="hurtigKnapp" class="guide-knapp" aria-label="Oversikt" title="Oversikt">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+      </svg>
+    </button>
+
+    <button type="button" id="guideKnapp" class="guide-knapp guide-knapp-2" aria-label="Guide / slik bruker du verktøyet" title="Guide">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="9.5" />
         <line x1="12" y1="11" x2="12" y2="16.5" />
@@ -171,6 +179,59 @@
       <footer>Intern vekting brukes til rangering og vises ikke i kundevisning.</footer>
     </div>
 
+    <!-- HURTIG PRIS-SAMMENLIGNING (toppselger) -->
+    <div id="hurtigVisning" hidden>
+      <section class="panel">
+        <div class="panel-topp">
+          <h2 class="seksjon-tittel">
+            <span class="seksjon-ikon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            Oversikt
+          </h2>
+          <button type="button" id="hurtigNullstill" class="ny-kunde" title="Tøm alt for ny kunde (hurtigtast R)">↺ Nullstill</button>
+        </div>
+
+        <div class="hurtig-grid">
+          <!-- Venstre: dagens pris -->
+          <div class="hurtig-side">
+            <div class="hurtig-etikett" id="hurtigIdagEtikett" title="Trykk for ren visning (samme som Enter)">I dag</div>
+            <div id="hurtigDagensLev" class="hurtig-dagens-lev"></div>
+            <div class="hurtig-input-rad">
+              <input id="hurtigBelop" type="text" inputmode="decimal" autocomplete="off" placeholder="Beløp, f.eks. 399+299" aria-label="Legg til dagens beløp" />
+              <button type="button" id="hurtigLeggTil" aria-label="Legg til beløp">+</button>
+            </div>
+            <div id="hurtigForslag" class="hurtig-forslag"></div>
+            <div id="hurtigIdagListe" class="hurtig-liste"></div>
+            <div class="hurtig-sum">
+              <span id="hurtigIdagSumTekst">Sum i dag</span>
+              <b id="hurtigIdagSum">0 kr</b>
+            </div>
+            <div class="hurtig-rabatt" aria-hidden="true"></div>
+          </div>
+
+          <!-- Høyre: med oss (nøytral – operatør hentes diskret med Q/W/E) -->
+          <div class="hurtig-side hurtig-hoyre">
+            <div class="hurtig-etikett" id="hurtigMedOssEtikett" title="Trykk her eller bruk Q/W/E – se (i) for alle hurtigtaster">Med oss <span class="hurtig-tast-hint" aria-hidden="true">Q·W·E</span></div>
+            <div class="hurtig-input-rad">
+              <input id="hurtigNyBelop" type="text" inputmode="decimal" autocomplete="off" placeholder="Beløp, f.eks. 399+299" aria-label="Legg til beløp hos oss" />
+              <button type="button" id="hurtigNyLeggTil" aria-label="Legg til beløp">+</button>
+            </div>
+            <div id="hurtigForslagNy" class="hurtig-forslag"></div>
+            <div id="hurtigPlaner" class="hurtig-planer" hidden></div>
+            <div id="hurtigValgte" class="hurtig-liste"></div>
+            <div class="hurtig-sum">
+              <span id="hurtigNySumTekst">Sum med oss</span>
+              <b id="hurtigNySum">0 kr</b>
+            </div>
+            <div id="hurtigRabattNote" class="hurtig-rabatt"></div>
+          </div>
+        </div>
+
+        <div id="hurtigDiff" class="hurtig-diff"></div>
+      </section>
+    </div>
+
     <!-- PRISOVERSIKT (intern) -->
     <div id="prisVisning" hidden>
       <button type="button" id="tilbakeKnapp" class="tilbake">← Tilbake</button>
@@ -228,6 +289,49 @@
     </div>
   </div>
 
+  <!-- Info om oversikten ((i)-knappen når oversikten er åpen) -->
+  <div id="hurtigGuideOverlay" class="kalk-overlay" hidden>
+    <div class="guide-modal" role="dialog" aria-label="Slik bruker du oversikten">
+      <div class="kalk-topp">
+        <span>Slik bruker du oversikten</span>
+        <button type="button" id="hurtigGuideLukk" class="kalk-lukk" aria-label="Lukk">✕</button>
+      </div>
+      <div class="guide">
+        <section>
+          <h3>Oppsett</h3>
+          <ul>
+            <li><b>Venstre side</b> – kundens pris i dag: trykk operatør og beløp, eller skriv inn.</li>
+            <li><b>Høyre side</b> – vår pris: trykk beløp, eller hent abonnement med hurtigtastene.</li>
+            <li><b>Familierabatt</b> regnes automatisk inn i abonnementsprisene.</li>
+          </ul>
+        </section>
+        <section>
+          <h3>Hurtigtaster</h3>
+          <ul>
+            <li><b>Q / W / E</b> – abonnement fra Telenor / Telia / ice (samme tast skjuler)</li>
+            <li><b>Enter</b> – ren visning: skjuler felt og valg (Enter igjen henter dem tilbake)</li>
+            <li><b>Escape</b> – lukk abonnementslisten</li>
+            <li><b>F</b> – «Dette er inkludert»-tabell for begge operatørene</li>
+            <li><b>K</b> – koder til Blueberry for de valgte abonnementene</li>
+            <li><b>S</b> – skjul/vis operatørnavn</li>
+            <li><b>R</b> – ny kunde (tømmer alt)</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fordels-sammenligning (hurtigtast F i pris-sammenligningen) -->
+  <div id="fordelOverlay" class="kalk-overlay" hidden>
+    <div class="fordel-modal" role="dialog" aria-label="Sammenlign fordeler">
+      <div class="kalk-topp">
+        <span>Dette er inkludert</span>
+        <button type="button" id="fordelLukk" class="kalk-lukk" aria-label="Lukk">✕</button>
+      </div>
+      <div id="fordelInnhold"></div>
+    </div>
+  </div>
+
   <!-- Guide / hjelp -->
   <div id="guideOverlay" class="kalk-overlay" hidden>
     <div class="guide-modal" role="dialog" aria-label="Guide">
@@ -271,6 +375,7 @@
             <li><b>Besparelse</b> vises mot dagens pris (måned og år).</li>
             <li><b>Fordeling per person</b> viser hva hver betaler.</li>
             <li><b>Andre alternativer</b> kan åpnes for å sammenligne de øvrige.</li>
+            <li>Trykk <b>F</b> for «Dette er inkludert» – dagens leverandør mot den anbefalte.</li>
           </ul>
         </section>
 
@@ -305,6 +410,6 @@
   </div>
 
   <script src="kalkulator.js?v=45"></script>
-  <script src="app.js?v=73"></script>
+  <script src="app.js?v=89"></script>
 </body>
 </html>

@@ -195,6 +195,24 @@ header .logo img { height: 30px; width: auto; display: block; }
 header .header-tittel .t { font-weight: 700; font-size: 15px; }
 header .sub { font-size: 12px; opacity: .8; letter-spacing: .3px; }
 
+/* Tilbakeknapp i headeren (hurtig-visningen) – ved tittelen, ikke over innholdet */
+header .header-tilbake {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, .4);
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s;
+}
+header .header-tilbake:hover { background: rgba(255, 255, 255, .1); }
+header .header-tilbake:active { background: rgba(255, 255, 255, .18); }
+
 /* «i»-guideknapp (skyves helt til høyre i headeren) */
 header .guide-knapp {
   margin-left: auto;
@@ -211,6 +229,8 @@ header .guide-knapp {
 }
 header .guide-knapp:hover { background: rgba(255, 255, 255, .1); }
 header .guide-knapp:active { background: rgba(255, 255, 255, .18); }
+/* Kun første høyre-knapp (⚡) skyver mot høyre – guiden ligger inntil. */
+header .guide-knapp-2 { margin-left: 2px; }
 
 /* ---- Layout ---- */
 .wrap {
@@ -1275,6 +1295,253 @@ footer {
   background: var(--navy);
   color: #fff;
   border-color: var(--navy);
+}
+
+/* ---- Hurtig pris-sammenligning (toppselger) ---- */
+.hurtig-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 6px;
+}
+.hurtig-side { display: flex; flex-direction: column; gap: 10px; padding-right: 18px; }
+/* «Streken» mellom i dag og med oss */
+.hurtig-hoyre { border-left: 2px solid var(--kant); padding-left: 18px; padding-right: 0; }
+.hurtig-etikett {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--tekst-svak);
+}
+
+.hurtig-input-rad { display: flex; gap: 8px; }
+.hurtig-input-rad input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  font-size: 17px;
+  font: inherit;
+  border: 1.5px solid var(--kant);
+  border-radius: 10px;
+  color: var(--tekst);
+}
+.hurtig-input-rad input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(13, 26, 86, .12); }
+.hurtig-input-rad button {
+  flex: 0 0 46px;
+  border: none;
+  border-radius: 10px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hurtig-input-rad button:active { background: var(--navy-700); }
+
+/* Bunn-forankret: linjene ligger rett over summen i begge kolonner, så
+   beløpslinje N til venstre alltid står på samme høyde som abo-linje N til
+   høyre – uansett om hurtigvalg/abo-listen over er åpen eller lukket. */
+.hurtig-liste { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+.hurtig-linje {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f7f8fb;
+  border: 1px solid var(--kant);
+  border-radius: 9px;
+  padding: 7px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tekst);
+}
+.hurtig-linje > span:first-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hurtig-linje-pris { font-weight: 800; color: var(--navy); white-space: nowrap; }
+.hurtig-fjern {
+  border: none;
+  background: none;
+  color: var(--tekst-svak);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+}
+/* Kundens operatør i dag – knapper (ikke dropdown), egne nett nederst */
+.hurtig-dagens-lev { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.hurtig-lev-knapp {
+  padding: 8px 2px;
+  border: 1.5px solid var(--kant);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--tekst);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hurtig-lev-knapp:active { background: #f4f6fb; }
+.hurtig-lev-knapp.aktiv { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+/* Hurtigvalg-beløp på «i dag»-siden – vanlige månedspriser, ett trykk per abo */
+.hurtig-forslag { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+/* display:grid/flex på klassene vinner ellers over nettleserens [hidden]-regel */
+.hurtig-forslag[hidden], .hurtig-planer[hidden], .hurtig-dagens-lev[hidden],
+.hurtig-input-rad[hidden] { display: none; }
+
+/* Etikett med tydelig operatørnavn («OneCall» / «Telia») – S veksler av/på */
+.hurtig-etikett-navn {
+  font-size: 15px;
+  text-transform: none;
+  letter-spacing: -.2px;
+  color: var(--navy);
+}
+.hurtig-belopvalg {
+  padding: 8px 2px;
+  border: 1.5px solid var(--kant);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--tekst);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hurtig-belopvalg:active { background: #f4f6fb; border-color: var(--navy); }
+
+/* Diskret hint om hurtigtastene – synlig for selger, anonym for kunden */
+.hurtig-tast-hint {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--tekst-svak);
+  opacity: .45;
+  text-transform: none;
+  margin-left: 4px;
+  user-select: none;
+}
+#hurtigMedOssEtikett { cursor: default; }
+
+.hurtig-planer { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+.hurtig-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: 9px 11px;
+  border: 1.5px solid var(--kant);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+.hurtig-plan:active { background: #f4f6fb; }
+.hurtig-plan.valgt { border-color: var(--navy); }
+.hurtig-plan .navn { font-size: 13px; font-weight: 700; color: var(--tekst); }
+.hurtig-plan .pris { font-size: 12.5px; font-weight: 600; color: var(--tekst-svak); }
+.hurtig-antall {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hurtig-sum {
+  padding-top: 10px;
+  border-top: 2px solid var(--kant);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.hurtig-sum span { font-size: 13px; font-weight: 600; color: var(--tekst-svak); }
+.hurtig-sum b {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -.4px;
+  white-space: nowrap;
+}
+/* Fast min-høyde: nota holder plassen på begge sider, så sum-radene alltid
+   ligger på nøyaktig samme linje selv når bare én side har rabatt-tekst. */
+.hurtig-rabatt { font-size: 12.5px; font-weight: 600; color: var(--gronn); text-align: right; min-height: 19px; }
+
+.hurtig-diff {
+  margin-top: 16px;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+.hurtig-diff b { font-size: 26px; font-weight: 800; letter-spacing: -.4px; }
+.hurtig-diff .hurtig-aar { font-size: 14px; font-weight: 700; opacity: .85; }
+.hurtig-diff.noytral { background: #eef1f8; color: var(--tekst-svak); font-size: 14px; }
+.hurtig-diff.spare { background: linear-gradient(135deg, var(--gronn) 0%, var(--gronn-700) 100%); color: #fff; }
+.hurtig-diff.dyrere { background: #fdf3e2; color: #8a5a12; border: 1px solid #f0ddb8; }
+
+@media (max-width: 640px) {
+  .hurtig-grid { grid-template-columns: 1fr; }
+  .hurtig-side { padding-right: 0; }
+  .hurtig-hoyre {
+    border-left: none;
+    border-top: 2px solid var(--kant);
+    padding-left: 0;
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+}
+
+/* ---- Fordels-sammenligning (hurtigtast F) ---- */
+.fordel-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+}
+.fordel-rad {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--kant);
+  font-size: 14px;
+}
+.fordel-rad > span:first-child { font-weight: 600; color: var(--tekst); }
+.fordel-topp { border-bottom: 2px solid var(--kant); padding-top: 4px; }
+.fordel-topp b { color: var(--navy); font-size: 14.5px; text-align: center; }
+.fordel-har,
+.fordel-mangler { text-align: center; white-space: nowrap; }
+.fordel-har { color: var(--gronn); font-weight: 800; }
+.fordel-mangler { color: var(--tekst-svak); font-weight: 600; }
+.fordel-oppsummering {
+  margin: 14px 2px 2px;
+  padding: 12px 14px;
+  background: #edf6ef;
+  border-radius: 10px;
+  color: var(--gronn-700);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: center;
 }
 
 /* ---- Velg tilbud (knapp + kode-vindu) ---- */
