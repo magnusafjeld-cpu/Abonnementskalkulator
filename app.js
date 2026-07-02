@@ -168,7 +168,16 @@ function renderBrukere() {
           }
         </div>
         <div class="mini">
-          <label>Hastighet</label>
+          <label class="label-med-info">Hastighet
+            <span class="info-hjelp">
+              <button type="button" class="info-ikon" aria-label="Hva betyr hastighetene?">i</button>
+              <span class="info-boble" role="tooltip">
+                <b>Vanlig</b> – under 200 Mbit<br>
+                <b>Rask</b> – 200 Mbit eller mer<br>
+                <b>Lynrask</b> – 1000 Mbit
+              </span>
+            </span>
+          </label>
           <select class="hastighet" data-i="${i}">${hastOpts}</select>
         </div>
       </div>`;

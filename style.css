@@ -526,6 +526,75 @@ header .guide-knapp:active { background: rgba(255, 255, 255, .18); }
 .bruker-rad select { padding: 12px; font-size: 16px; }
 .bruker-rad select { padding-right: 36px; }
 
+/* ---- Info-ikon med forklaring (hjelpe-tooltip) ---- */
+.label-med-info { display: flex; align-items: center; gap: 6px; }
+.info-hjelp { position: relative; display: inline-flex; }
+.info-ikon {
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: 1px solid var(--kant);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tekst-svak);
+  opacity: .6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .14s, color .14s, border-color .14s, opacity .14s;
+}
+.info-ikon:hover,
+.info-hjelp:focus-within .info-ikon {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+  opacity: 1;
+}
+.info-boble {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: 220px;
+  padding: 9px 11px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.55;
+  text-align: left;
+  letter-spacing: 0;
+  border-radius: 8px;
+  box-shadow: var(--skygge);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity .14s, transform .14s, visibility .14s;
+  pointer-events: none;
+}
+.info-boble::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  right: 4px;
+  border: 6px solid transparent;
+  border-bottom-color: var(--navy);
+}
+.info-boble b { font-weight: 700; }
+.info-hjelp:hover .info-boble,
+.info-hjelp:focus-within .info-boble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 .legg-til {
   width: 100%;
   padding: 13px;
