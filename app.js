@@ -102,7 +102,7 @@ function byggLeverandorer() {
   // Tomt standardvalg – ingen leverandør valgt før selgeren velger.
   const tom = document.createElement("option");
   tom.value = "";
-  tom.textContent = "— Velg leverandør —";
+  tom.textContent = "Velg leverandør";
   sel.appendChild(tom);
   OPERATORER.forEach((g) => {
     const og = document.createElement("optgroup");
@@ -613,9 +613,7 @@ function hurtigVisTilbud() {
   hurtig.valgte.forEach((v) => {
     const p = hurtigPlan(v.id);
     if (!p) return;
-    for (let i = 0; i < v.antall; i++) {
-      valg.push({ plan: p, pris: planPris(p, null), alder: null });
-    }
+    valg.push({ plan: p, pris: planPris(p, v.alder), alder: v.alder });
   });
   if (!valg.length) return; // ingen abonnement valgt ennå
   visTilbudFor(valg, valg[0].plan.leverandor);
@@ -628,7 +626,7 @@ function visTilbudFor(brukerPlaner, leverandorNavn) {
   const innhold = document.getElementById("tilbudInnhold");
 
   const harBinding = data.rader.some(
-    (r) => r.binding && r.binding !== "Uten binding" && r.binding !== "—"
+    (r) => r.binding && r.binding !== "Uten binding" && r.binding !== "–"
   );
   // Egendefinerte (lagt til) abonnement har ingen salgskode i systemet.
   const manglerKode = data.rader.filter((r) =>
@@ -911,11 +909,15 @@ const HURTIG_DAGENS_OPERATORER = [
 const hurtig = {
   belop: [],      // dagens beløp (kr per linje)
   nyBelop: [],    // manuelle beløp på «med oss»-siden
-  valgte: [],     // [{ id, antall }] – valgte abonnement hos oss
+  valgte: [],     // valgte abonnement hos oss – én oppføring per SIM: { id, alder }
   lev: null,      // operatør vist via Q/W/E (null = skjult/nøytral)
   dagensLev: null, // kundens operatør i dag (vises i etikett og på linjene)
-  // Ren visning (Enter veksler): skjuler beløpsfelt, hurtigvalg og velgere,
-  // slik at kun linjene, summene og differansen står igjen for kunden.
+  // Trinn for talltastene: "operator" (velg/bytt fritt til Enter bekrefter),
+  // "belopvalg" (beløp i dag, venstre), "nyBelopvalg" (beløp hos oss, høyre).
+  // Enter går videre i flyten; ren visning krever innhold på høyresiden.
+  trinn: "operator",
+  // Ren visning: skjuler beløpsfelt, hurtigvalg og velgere, slik at kun
+  // linjene, summene og differansen står igjen for kunden.
   presentasjon: false,
   // S veksler: skjul operatørnavnene i etiketter, linjer og sum-tekster.
   skjulOperator: false,
@@ -978,7 +980,7 @@ function visFordeler(dagens, nyLev) {
     .map((r) => r.gevinst || r.navn);
   const oppsummering = gevinster.length
     ? `Alt det viktigste er likt – i tillegg får kunden ${gevinster.join(" og ")}.`
-    : "Ingen forskjell på det viktigste – kunden mister ingenting.";
+    : "Alt det viktigste er likt hos begge.";
 
   document.getElementById("fordelInnhold").innerHTML = `
     <div class="fordel-rad fordel-topp">
@@ -999,6 +1001,34 @@ function visFordeler(dagens, nyLev) {
   document.getElementById("fordelOverlay").hidden = false;
 }
 
+// Har høyresiden («med oss») fått innhold? Ren visning gir først mening da.
+function hurtigHarNyInnhold() {
+  return hurtig.valgte.length > 0 || hurtig.nyBelop.length > 0;
+}
+
+// Enter går videre i flyten (brukes av Enter-tasten og «I dag»-etiketten):
+//   operatør-trinn  -> bekreft operatørvalget, videre til beløp i dag
+//   beløp i dag     -> videre til høyresiden (beløp/abonnement hos oss)
+//   høyre-trinnet   -> ren visning (først når noe er lagt inn der)
+//   åpen abo-liste  -> lukk listen; ren visning hvis høyresiden har innhold
+//   ren visning     -> tilbake til bygging
+function hurtigEnter() {
+  if (hurtig.presentasjon) {
+    hurtig.presentasjon = false;
+  } else if (hurtig.lev) {
+    hurtig.lev = null;
+    if (hurtigHarNyInnhold()) hurtig.presentasjon = true;
+    else hurtig.trinn = "nyBelopvalg";
+  } else if (hurtig.trinn === "operator") {
+    hurtig.trinn = "belopvalg";
+  } else if (hurtig.trinn === "belopvalg") {
+    hurtig.trinn = "nyBelopvalg";
+  } else if (hurtigHarNyInnhold()) {
+    hurtig.presentasjon = true;
+  }
+  renderHurtig();
+}
+
 // Ny kunde: tøm alt og start på nytt. Brukes av ↺-knappen og hurtigtasten R.
 function hurtigNullstill() {
   hurtig.belop = [];
@@ -1006,12 +1036,15 @@ function hurtigNullstill() {
   hurtig.valgte = [];
   hurtig.lev = null;
   hurtig.dagensLev = null;
+  hurtig.trinn = "operator";
   hurtig.presentasjon = false;
   hurtig.skjulOperator = false;
   document.getElementById("hurtigBelop").value = "";
   document.getElementById("hurtigNyBelop").value = "";
+  // Bevisst ingen auto-fokus i beløpsfeltet: talltastene skal være ledige
+  // som hurtigtaster (1–9 velger abonnement når listen er åpen). Sifre
+  // tastet utenfor felt rutes likevel til beløpsfeltet (se keydown-lytteren).
   renderHurtig();
-  document.getElementById("hurtigBelop").focus();
 }
 
 // Bytte til en (annen) operatør fjerner valg som ikke hører til den – selgeren
@@ -1071,13 +1104,11 @@ function hurtigNyTotal() {
   hurtig.valgte.forEach((v) => {
     const p = hurtigPlan(v.id);
     if (!p) return;
-    for (let i = 0; i < v.antall; i++) {
-      (perLev[p.leverandor] = perLev[p.leverandor] || []).push({
-        plan: p,
-        pris: planPris(p, null),
-        alder: null,
-      });
-    }
+    (perLev[p.leverandor] = perLev[p.leverandor] || []).push({
+      plan: p,
+      pris: planPris(p, v.alder),
+      alder: v.alder,
+    });
   });
   const manuelt = hurtig.nyBelop.reduce((s, b) => s + b, 0);
   let total = manuelt;
@@ -1093,25 +1124,47 @@ function hurtigIdagSum() {
   return hurtig.belop.reduce((s, b) => s + b, 0);
 }
 
+// Hvilken gruppe talltastene (1–9 og 0 som tiende) treffer akkurat nå.
+// Tall-merkene i renderHurtig viser alltid gruppen som er aktiv:
+//   1. Åpen abo-liste (Q/W/E)  -> abonnementene
+//   2. Trinn "operator"        -> operatørknappene (bytt fritt til Enter)
+//   3. Trinn "belopvalg"       -> hurtigvalg-beløpene til venstre (i dag)
+//   4. Trinn "nyBelopvalg"     -> hurtigvalg-beløpene til høyre (med oss)
+// Enter går videre: operatør -> beløp i dag -> beløp hos oss -> ren visning.
+function hurtigTallMal() {
+  if (hurtig.presentasjon) return null;
+  if (hurtig.lev) return "planer";
+  return hurtig.trinn;
+}
+
+// Talltast -> indeks: 1–9 er nr. 1–9, 0 er nr. 10.
+function tastTilIndeks(key) {
+  return key === "0" ? 9 : Number(key) - 1;
+}
+
+const tastMerke = (i) =>
+  `<kbd class="hurtig-plan-tast">${i === 9 ? 0 : i + 1}</kbd>`;
+
 function renderHurtig() {
+  const tallMal = hurtigTallMal();
   // Abonnement hos operatøren hentet frem med Q/W/E, billigst først – ett
   // trykk = legg til. Uten valgt operatør holdes høyresiden helt nøytral.
   const planerEl = document.getElementById("hurtigPlaner");
   planerEl.hidden = !hurtig.lev;
-  const antallFor = (id) => {
-    const v = hurtig.valgte.find((x) => x.id === id);
-    return v ? v.antall : 0;
-  };
+  const antallFor = (id) => hurtig.valgte.filter((v) => v.id === id).length;
   const planer = hurtig.lev
     ? ABONNEMENTER.filter((p) => p.leverandor === hurtig.lev)
         .sort((a, b) => planPris(a, null) - planPris(b, null))
     : [];
   planerEl.innerHTML = planer
-    .map((p) => {
+    .map((p, i) => {
       const n = antallFor(p.id);
+      // De ti første får tast-merke: 1–9 er nr. 1–9, 0 er nr. 10. Billigst
+      // først, så eventuelle planer utover ti (dyrest) klarer seg uten tast.
+      const tast = i < 10 ? tastMerke(i) : "";
       return `<button type="button" class="hurtig-plan${n ? " valgt" : ""}" data-id="${p.id}">
         ${n ? `<span class="hurtig-antall">${n}</span>` : ""}
-        <span class="navn">${p.navn}</span>
+        <span class="navn">${tast}${p.navn}</span>
         <span class="pris">${kr(planPris(p, null))}</span>
       </button>`;
     })
@@ -1128,21 +1181,28 @@ function renderHurtig() {
   const dagensEl = document.getElementById("hurtigDagensLev");
   dagensEl.hidden = hurtig.presentasjon;
   dagensEl.innerHTML = HURTIG_DAGENS_OPERATORER.map(
-    (navn) =>
+    (navn, i) =>
       `<button type="button" class="hurtig-lev-knapp${
         hurtig.dagensLev === navn ? " aktiv" : ""
-      }" data-lev="${navn}">${navn}</button>`
+      }" data-lev="${navn}">${
+        tallMal === "operator" && i < 9 ? tastMerke(i) : ""
+      }${navn}</button>`
   ).join("");
-  const belopvalgHtml = (side) =>
+  // Tast-merker på beløpene kun når siden er aktiv gruppe; de ti laveste
+  // får tast – de dyreste klarer seg uten.
+  const belopvalgHtml = (side, medTaster) =>
     HURTIG_FORSLAG.map(
-      (b) => `<button type="button" class="hurtig-belopvalg" data-side="${side}" data-belop="${b}">${b}</button>`
+      (b, i) =>
+        `<button type="button" class="hurtig-belopvalg" data-side="${side}" data-belop="${b}">${
+          medTaster && i < 10 ? tastMerke(i) : ""
+        }${b}</button>`
     ).join("");
   const forslagEl = document.getElementById("hurtigForslag");
   forslagEl.hidden = hurtig.presentasjon;
-  forslagEl.innerHTML = belopvalgHtml("idag");
+  forslagEl.innerHTML = belopvalgHtml("idag", tallMal === "belopvalg");
   const forslagNyEl = document.getElementById("hurtigForslagNy");
   forslagNyEl.hidden = hurtig.presentasjon || !!hurtig.lev;
-  forslagNyEl.innerHTML = belopvalgHtml("ny");
+  forslagNyEl.innerHTML = belopvalgHtml("ny", tallMal === "nyBelopvalg");
 
   // Operatørnavnene står tydelig i etikettene («OneCall» / «Telia») – S
   // veksler dem av når selgeren ikke vil avsløre operatøren ennå.
@@ -1152,9 +1212,7 @@ function renderHurtig() {
   idagEtikett.classList.toggle("hurtig-etikett-navn", visNavn && !!hurtig.dagensLev);
   const nyLevNavn = visNavn ? hurtigNyLev() : null;
   const medOssEtikett = document.getElementById("hurtigMedOssEtikett");
-  medOssEtikett.innerHTML = `${nyLevNavn || "Med oss"}${
-    hurtig.presentasjon ? "" : ' <span class="hurtig-tast-hint" aria-hidden="true">Q·W·E</span>'
-  }`;
+  medOssEtikett.textContent = nyLevNavn || "Med oss";
   medOssEtikett.classList.toggle("hurtig-etikett-navn", !!nyLevNavn);
 
   // Med valgt dagens-operatør vises navnet på hver linje («OneCall  349 kr»)
@@ -1180,32 +1238,46 @@ function renderHurtig() {
 
   // Høyre: valgte abonnement én linje per SIM, med familierabatt fordelt i
   // linjeprisen (3× Telia X Start vises som 449 + 349 + 349) – symmetrisk
-  // med beløpslinjene til venstre. ✕ fjerner én SIM.
+  // med beløpslinjene til venstre. ✕ fjerner én SIM. Aldersrelevante planer
+  // (Telenor) får et alders-merke som blar 30+/u30/u13 (samme som U-tasten).
   const grupper = {};
-  hurtig.valgte.forEach((v) => {
+  hurtig.valgte.forEach((v, idx) => {
     const p = hurtigPlan(v.id);
     if (!p) return;
-    for (let i = 0; i < v.antall; i++) {
-      (grupper[p.leverandor] = grupper[p.leverandor] || []).push({
-        plan: p,
-        pris: planPris(p, null),
-        alder: null,
-        id: v.id,
-      });
-    }
+    (grupper[p.leverandor] = grupper[p.leverandor] || []).push({
+      plan: p,
+      pris: planPris(p, v.alder),
+      alder: v.alder,
+      idx,
+    });
   });
   const planLinjer = [];
   Object.entries(grupper).forEach(([lev, valg]) => {
     const priser = hurtigLinjePriser(lev, valg);
-    valg.forEach((v, i) => planLinjer.push({ id: v.id, navn: v.plan.navn, pris: priser[i] }));
+    valg.forEach((v, i) =>
+      planLinjer.push({
+        idx: v.idx,
+        navn: v.plan.navn,
+        alder: v.alder,
+        alderTag: hurtigAlderRelevant(v.plan),
+        pris: priser[i],
+      })
+    );
   });
   document.getElementById("hurtigValgte").innerHTML =
     planLinjer
       .map(
         (l) => `<div class="hurtig-linje">
           <span class="hurtig-linje-navn">${l.navn}</span>
+          ${
+            l.alderTag
+              ? `<button type="button" class="hurtig-alder-tag${
+                  l.alder != null ? " aktiv" : ""
+                }" data-alder-idx="${l.idx}" title="Bytt aldersgruppe (hurtigtast U)">${hurtigAlderTekst(l.alder)}</button>`
+              : ""
+          }
           <span class="hurtig-linje-pris">${kr(l.pris)}</span>
-          <button type="button" class="hurtig-fjern" data-plan="${l.id}" aria-label="Fjern abonnement">✕</button>
+          <button type="button" class="hurtig-fjern" data-fjern-plan="${l.idx}" aria-label="Fjern abonnement">✕</button>
         </div>`
       )
       .join("") +
@@ -1263,19 +1335,67 @@ function hurtigLeggTilBelop(feltId, liste) {
     .filter((n) => Number.isFinite(n) && n > 0);
   if (verdier.length) {
     liste.push(...verdier);
+    // Trinnet følger siden selgeren jobber på.
+    hurtig.trinn = liste === hurtig.nyBelop ? "nyBelopvalg" : "belopvalg";
     renderHurtig();
   }
   felt.value = "";
   felt.focus();
 }
 
-function hurtigEndreAntall(id, steg) {
-  const v = hurtig.valgte.find((x) => x.id === id);
-  if (!v && steg > 0) hurtig.valgte.push({ id, antall: 1 });
-  else if (v) {
-    v.antall += steg;
-    if (v.antall <= 0) hurtig.valgte = hurtig.valgte.filter((x) => x.id !== id);
-  }
+function hurtigLeggTilPlan(id) {
+  hurtig.valgte.push({ id, alder: null }); // ny SIM, voksen (30+) som standard
+  // Abonnement valgt = selgeren jobber på høyresiden.
+  hurtig.trinn = "nyBelopvalg";
+  renderHurtig();
+}
+
+function hurtigFjernPlan(idx) {
+  hurtig.valgte.splice(idx, 1);
+  renderHurtig();
+}
+
+// ---- Aldersgruppe per SIM (hurtigtast U / trykk på linjens alders-merke) --
+// Telenor priser unge på voksenplanene (aldersrabatt, medlemspris 399 for
+// u30, U13-pris på Sikre) i stedet for egne ungdomsplaner. Alder per SIM gir
+// riktig pris og riktige salgskoder (TNSIKREU13) via samme motor som resten.
+// Representative aldre: null = 30+, 25 = under 30, 10 = under 13.
+function hurtigAlderRelevant(plan) {
+  if (Array.isArray(plan.alder_rabatt) && plan.alder_rabatt.length) return true;
+  const regel = FAMILIERABATT[plan.leverandor];
+  return !!(
+    regel &&
+    regel.modell === "familiemedlem_fastpris" &&
+    girFamilierabatt(plan) &&
+    (!regel.gjelder_kun_ubegrenset || plan.ubegrenset)
+  );
+}
+
+// Har planen en egen U13-pris? Enten egen medlemspris (Sikre 249) eller en
+// aldersrabatt-sats som kun gjelder under 13 (Fast 5 GB 149).
+function hurtigHarU13Pris(plan) {
+  if (plan.familie_medlemspris && plan.familie_medlemspris.under_13 != null) return true;
+  return Array.isArray(plan.alder_rabatt) && plan.alder_rabatt.some((r) => r.maks < 13);
+}
+
+// Neste steg i syklusen 30+ -> u30 -> (u13 kun der den har egen pris) -> 30+.
+function hurtigNesteAlder(plan, alder) {
+  if (alder == null) return 25;
+  if (alder >= 13 && hurtigHarU13Pris(plan)) return 10;
+  return null;
+}
+
+function hurtigAlderTekst(alder) {
+  if (alder == null) return "30+";
+  return alder < 13 ? "u13" : "u30";
+}
+
+function hurtigBladAlder(idx) {
+  const v = hurtig.valgte[idx];
+  if (!v) return;
+  const p = hurtigPlan(v.id);
+  if (!p || !hurtigAlderRelevant(p)) return;
+  v.alder = hurtigNesteAlder(p, v.alder);
   renderHurtig();
 }
 
@@ -1830,17 +1950,14 @@ async function start() {
   document.getElementById("hurtigKnapp").addEventListener("click", () => {
     renderHurtig();
     visVisning("hurtig");
-    document.getElementById("hurtigBelop").focus();
+    // Ingen auto-fokus: talltastene er hurtigtaster, og sifre tastet utenfor
+    // felt rutes uansett til beløpsfeltet.
   });
   document.getElementById("hurtigTilbakeHeader").addEventListener("click", () => visVisning("input"));
   document.getElementById("hurtigNullstill").addEventListener("click", hurtigNullstill);
   // Berørings-alternativ (uten Enter-tast): trykk på «I dag»-etiketten
-  // veksler ren visning – samme som Enter.
-  document.getElementById("hurtigIdagEtikett").addEventListener("click", () => {
-    hurtig.presentasjon = !hurtig.presentasjon;
-    if (hurtig.presentasjon) hurtig.lev = null;
-    renderHurtig();
-  });
+  // gjør det samme som Enter – neste trinn i flyten.
+  document.getElementById("hurtigIdagEtikett").addEventListener("click", hurtigEnter);
   document.getElementById("hurtigLeggTil").addEventListener("click", () =>
     hurtigLeggTilBelop("hurtigBelop", hurtig.belop)
   );
@@ -1890,7 +2007,38 @@ async function start() {
     const lev = HURTIG_TASTER[e.key.toLowerCase()];
     if (lev) {
       e.preventDefault();
+      // Slipp fokus fra beløpsfeltet, slik at talltastene velger abonnement
+      // (1–9) i stedet for å skrive i feltet.
+      if (e.target instanceof HTMLInputElement) e.target.blur();
       hurtigVisLev(hurtig.lev === lev ? null : lev);
+    } else if (/^[0-9]$/.test(e.key)) {
+      // Talltaster utenfor felt treffer gruppen som viser tall-merker
+      // (se hurtigTallMal): abo-liste, operatørknapper eller beløpsvalg.
+      // 1–9 = nr. 1–9, 0 = nr. 10. Egne beløp skrives ved å klikke i feltet.
+      if (e.target instanceof HTMLInputElement) return; // vanlig skriving i felt
+      const mal = hurtigTallMal();
+      if (!mal) return;
+      const idx = tastTilIndeks(e.key);
+      e.preventDefault();
+      if (mal === "planer") {
+        const knapp = document.querySelectorAll("#hurtigPlaner .hurtig-plan")[idx];
+        if (knapp) hurtigLeggTilPlan(knapp.dataset.id);
+      } else if (mal === "operator") {
+        // Bytt fritt mellom operatørene til Enter bekrefter; samme tall
+        // fjerner valget igjen.
+        const navn = HURTIG_DAGENS_OPERATORER[idx];
+        if (navn) {
+          hurtig.dagensLev = hurtig.dagensLev === navn ? null : navn;
+          renderHurtig();
+        }
+      } else {
+        // "belopvalg" = venstre side (i dag), "nyBelopvalg" = høyre (med oss).
+        const b = HURTIG_FORSLAG[idx];
+        if (b) {
+          (mal === "nyBelopvalg" ? hurtig.nyBelop : hurtig.belop).push(b);
+          renderHurtig();
+        }
+      }
     } else if (e.key.toLowerCase() === "k") {
       // K = kode-vinduet (Blueberry) for de valgte abonnementene
       e.preventDefault();
@@ -1904,6 +2052,10 @@ async function start() {
       e.preventDefault();
       hurtig.skjulOperator = !hurtig.skjulOperator;
       renderHurtig();
+    } else if (e.key.toLowerCase() === "u") {
+      // U = bla aldersgruppe (30+ -> u30 -> ev. u13) på siste abo-linje
+      e.preventDefault();
+      hurtigBladAlder(hurtig.valgte.length - 1);
     } else if (e.key.toLowerCase() === "r") {
       // R = ny kunde (samme som ↺ Nullstill). Cmd/Ctrl+R (reload) er
       // allerede sluppet gjennom av modifikator-vakten over.
@@ -1911,17 +2063,21 @@ async function start() {
       hurtigNullstill();
     } else if (e.key === "Enter") {
       // Enter i beløpsfeltene legger til beløp (håndteres på feltet) og skal
-      // aldri veksle visning. Ellers veksler Enter ren visning: felt og
-      // velgere bort – Enter igjen henter dem tilbake. preventDefault
-      // hindrer at en fokusert knapp «klikkes» på nytt.
+      // aldri gå videre i flyten. Ellers: neste trinn (se hurtigEnter).
+      // preventDefault hindrer at en fokusert knapp «klikkes» på nytt.
       if (e.target instanceof HTMLInputElement) return;
       e.preventDefault();
-      hurtig.presentasjon = !hurtig.presentasjon;
-      if (hurtig.presentasjon) hurtig.lev = null;
-      renderHurtig();
-    } else if (e.key === "Escape" && hurtig.lev) {
-      e.preventDefault();
-      hurtigVisLev(null);
+      hurtigEnter();
+    } else if (e.key === "Escape") {
+      if (hurtig.presentasjon) {
+        // Ren visning -> tilbake til bygge-skjermen (beholder alt som er lagt inn)
+        e.preventDefault();
+        hurtig.presentasjon = false;
+        renderHurtig();
+      } else if (hurtig.lev) {
+        e.preventDefault();
+        hurtigVisLev(null);
+      }
     }
   });
   // Fordels-overlayet lukkes med ✕ eller klikk utenfor (i tillegg til F/Escape).
@@ -1952,18 +2108,25 @@ async function start() {
     if (belopvalg) {
       const liste = belopvalg.dataset.side === "ny" ? hurtig.nyBelop : hurtig.belop;
       liste.push(Number(belopvalg.dataset.belop));
+      // Trinnet følger siden selgeren jobber på.
+      hurtig.trinn = belopvalg.dataset.side === "ny" ? "nyBelopvalg" : "belopvalg";
       renderHurtig();
       return;
     }
     const plan = e.target.closest(".hurtig-plan");
     if (plan) {
-      hurtigEndreAntall(plan.dataset.id, 1);
+      hurtigLeggTilPlan(plan.dataset.id);
+      return;
+    }
+    const alderTag = e.target.closest(".hurtig-alder-tag");
+    if (alderTag) {
+      hurtigBladAlder(Number(alderTag.dataset.alderIdx));
       return;
     }
     const fjern = e.target.closest(".hurtig-fjern");
     if (fjern) {
-      if (fjern.dataset.plan) {
-        hurtigEndreAntall(fjern.dataset.plan, -1); // fjern én SIM
+      if (fjern.dataset.fjernPlan != null) {
+        hurtigFjernPlan(Number(fjern.dataset.fjernPlan)); // fjern én SIM
       } else {
         const liste = fjern.dataset.side === "ny" ? hurtig.nyBelop : hurtig.belop;
         liste.splice(Number(fjern.dataset.i), 1);

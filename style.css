@@ -1364,6 +1364,24 @@ footer {
   font-size: 13px;
   padding: 2px 4px;
 }
+/* Alders-merke på abo-linjer (Telenor): blar 30+/u30/u13 – speiler U-tasten */
+.hurtig-alder-tag {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: 1px solid var(--kant);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--tekst-svak);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.hurtig-alder-tag.aktiv {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
 /* Kundens operatør i dag – knapper (ikke dropdown), egne nett nederst */
 .hurtig-dagens-lev { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .hurtig-lev-knapp {
@@ -1407,17 +1425,6 @@ footer {
 }
 .hurtig-belopvalg:active { background: #f4f6fb; border-color: var(--navy); }
 
-/* Diskret hint om hurtigtastene – synlig for selger, anonym for kunden */
-.hurtig-tast-hint {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--tekst-svak);
-  opacity: .45;
-  text-transform: none;
-  margin-left: 4px;
-  user-select: none;
-}
 #hurtigMedOssEtikett { cursor: default; }
 
 .hurtig-planer { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
@@ -1438,6 +1445,23 @@ footer {
 .hurtig-plan.valgt { border-color: var(--navy); }
 .hurtig-plan .navn { font-size: 13px; font-weight: 700; color: var(--tekst); }
 .hurtig-plan .pris { font-size: 12.5px; font-weight: 600; color: var(--tekst-svak); }
+/* Lite tast-merke på abo-kortene: talltast 1–9 legger til abonnementet */
+.hurtig-plan-tast {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  margin-right: 6px;
+  padding: 0 2px;
+  border: 1px solid var(--kant);
+  border-radius: 4px;
+  background: #f4f6fb;
+  color: var(--tekst-svak);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+}
 .hurtig-antall {
   position: absolute;
   top: -7px;

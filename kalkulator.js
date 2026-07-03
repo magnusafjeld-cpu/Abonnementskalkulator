@@ -957,7 +957,7 @@ function byggTilbudskoder(brukerPlaner) {
       person: i + 1,
       planNavn: v.plan.navn,
       leverandor: v.plan.leverandor,
-      binding: def ? def.binding : "—",
+      binding: def ? def.binding : "–",
       koder,
     };
   });

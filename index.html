@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=67" />
+  <link rel="stylesheet" href="style.css?v=70" />
 </head>
 <body>
   <header>
@@ -212,7 +212,7 @@
 
           <!-- Høyre: med oss (nøytral – operatør hentes diskret med Q/W/E) -->
           <div class="hurtig-side hurtig-hoyre">
-            <div class="hurtig-etikett" id="hurtigMedOssEtikett" title="Trykk her eller bruk Q/W/E – se (i) for alle hurtigtaster">Med oss <span class="hurtig-tast-hint" aria-hidden="true">Q·W·E</span></div>
+            <div class="hurtig-etikett" id="hurtigMedOssEtikett" title="Trykk her eller bruk Q/W/E – se (i) for alle hurtigtaster">Med oss</div>
             <div class="hurtig-input-rad">
               <input id="hurtigNyBelop" type="text" inputmode="decimal" autocomplete="off" placeholder="Beløp, f.eks. 399+299" aria-label="Legg til beløp hos oss" />
               <button type="button" id="hurtigNyLeggTil" aria-label="Legg til beløp">+</button>
@@ -309,10 +309,13 @@
           <h3>Hurtigtaster</h3>
           <ul>
             <li><b>Q / W / E</b> – abonnement fra Telenor / Telia / ice (samme tast skjuler)</li>
-            <li><b>Enter</b> – ren visning: skjuler felt og valg (Enter igjen henter dem tilbake)</li>
-            <li><b>Escape</b> – lukk abonnementslisten</li>
+            <li><b>1–9 og 0</b> – velg knappen med samme tall-merke (0 = nr. 10). I operatør-trinnet kan du bytte fritt til Enter bekrefter</li>
+            <li><b>Egne beløp</b> – klikk i beløpsfeltet og skriv (f.eks. 429+298)</li>
+            <li><b>Enter</b> – neste trinn: operatør → beløp i dag → beløp/abo hos oss → ren visning (Enter igjen henter alt tilbake)</li>
+            <li><b>Escape</b> – tilbake ett steg: fra ren visning til bygging, eller lukk abonnementslisten</li>
             <li><b>F</b> – «Dette er inkludert»-tabell for begge operatørene</li>
             <li><b>K</b> – koder til Blueberry for de valgte abonnementene</li>
+            <li><b>U</b> – bytt aldersgruppe (30+/u30/u13) på siste abo-linje, eller trykk merket på linjen. Gir riktig ungdomspris hos Telenor</li>
             <li><b>S</b> – skjul/vis operatørnavn</li>
             <li><b>R</b> – ny kunde (tømmer alt)</li>
           </ul>
@@ -409,7 +412,7 @@
     </div>
   </div>
 
-  <script src="kalkulator.js?v=45"></script>
-  <script src="app.js?v=89"></script>
+  <script src="kalkulator.js?v=46"></script>
+  <script src="app.js?v=99"></script>
 </body>
 </html>
