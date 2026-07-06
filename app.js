@@ -921,6 +921,25 @@ const hurtig = {
   presentasjon: false,
   // S veksler: skjul operatørnavnene i etiketter, linjer og sum-tekster.
   skjulOperator: false,
+  // D veksler: vis produktrabatt (engangs) for valgte abonnement.
+  visProduktrabatt: false,
+  // Shift+D: påslag på rabattsatsen (+100 per trykk, nullstilles når D skrus av).
+  rabattEkstra: 0,
+  // Rekkefølgen ting ble lagt til i ("belop"/"nyBelop"/"valgte") – for
+  // Backspace = angre siste.
+  sisteTillegg: [],
+};
+
+// Produktrabatt (engangs) per abonnement – veksles med D, totalen økes med
+// Shift+D (+100 per trykk, opp til summen av 'maks' per kvalifiserende abo).
+// 'startMaks' begrenser hva operatørens samlede startbeløp kan bli (Telenor/
+// ice starter aldri over 500 kr uansett antall abo). Kvalifisering: Telia =
+// kun Telia X (produktrabatt-flagget i dataene), Telenor = ubegrenset-
+// planene, ice = abo med pris fra 299 kr.
+const HURTIG_PRODUKTRABATT = {
+  Telia:   { start: 500, maks: 1000, kvalifiserer: (p) => !!p.produktrabatt },
+  Telenor: { start: 300, maks: 500, startMaks: 500, kvalifiserer: (p) => !!p.ubegrenset },
+  ice:     { start: 300, maks: 500, startMaks: 500, kvalifiserer: (p) => planPris(p, null) >= 299 },
 };
 
 // ---- Fordels-sammenligning (hurtigtast F) --------------------
@@ -1029,6 +1048,32 @@ function hurtigEnter() {
   renderHurtig();
 }
 
+// G = overfør Oversikt-tallene til den vanlige kalkulatoren og gi full
+// anbefaling: dagens leverandør og sum fylles inn, og husstanden bygges av
+// abo-valgene (én person per linje i dag, aldre fra valgte abonnement).
+// Databehov/hastighet settes til standard (fri data/vanlig) – selgeren kan
+// justere via «Endre kundeinfo».
+function hurtigTilKalkulator() {
+  if (hurtig.dagensLev) {
+    const sel = document.getElementById("leverandor");
+    if ([...sel.options].some((o) => o.value === hurtig.dagensLev)) {
+      sel.value = hurtig.dagensLev;
+    }
+  }
+  const idag = hurtigIdagSum();
+  if (idag > 0) document.getElementById("dagensPris").value = idag;
+  const antall = hurtig.belop.length || hurtig.valgte.length || state.brukere.length || 1;
+  state.brukere = Array.from({ length: antall }, (_, i) => {
+    const b = nyBruker();
+    const v = hurtig.valgte[i];
+    if (v && v.alder != null) b.alderValg = v.alder < 13 ? "barn" : "ung";
+    return b;
+  });
+  renderBrukere();
+  oppdater();
+  visVisning("resultat");
+}
+
 // Ny kunde: tøm alt og start på nytt. Brukes av ↺-knappen og hurtigtasten R.
 function hurtigNullstill() {
   hurtig.belop = [];
@@ -1039,6 +1084,9 @@ function hurtigNullstill() {
   hurtig.trinn = "operator";
   hurtig.presentasjon = false;
   hurtig.skjulOperator = false;
+  hurtig.visProduktrabatt = false;
+  hurtig.rabattEkstra = 0;
+  hurtig.sisteTillegg = [];
   document.getElementById("hurtigBelop").value = "";
   document.getElementById("hurtigNyBelop").value = "";
   // Bevisst ingen auto-fokus i beløpsfeltet: talltastene skal være ledige
@@ -1188,6 +1236,20 @@ function renderHurtig() {
         tallMal === "operator" && i < 9 ? tastMerke(i) : ""
       }${navn}</button>`
   ).join("");
+
+  // Operatørknapper på høyresiden – gjør det samme som Q/W/E, for dem som
+  // heller vil trykke. Aktiv knapp = åpen abo-liste; samme knapp lukker.
+  // Tast-merket (Q/W/E) hentes fra HURTIG_TASTER så de alltid stemmer.
+  const nyLevEl = document.getElementById("hurtigNyLev");
+  nyLevEl.hidden = hurtig.presentasjon;
+  nyLevEl.innerHTML = VARE_LEVERANDORER.map((navn) => {
+    const tast = Object.keys(HURTIG_TASTER).find((k) => HURTIG_TASTER[k] === navn);
+    return `<button type="button" class="hurtig-lev-knapp${
+      hurtig.lev === navn ? " aktiv" : ""
+    }" data-nylev="${navn}">${
+      tast ? `<kbd class="hurtig-plan-tast">${tast.toUpperCase()}</kbd>` : ""
+    }${navn}</button>`;
+  }).join("");
   // Tast-merker på beløpene kun når siden er aktiv gruppe; de ti laveste
   // får tast – de dyreste klarer seg uten.
   const belopvalgHtml = (side, medTaster) =>
@@ -1303,6 +1365,34 @@ function renderHurtig() {
   document.getElementById("hurtigRabattNote").textContent =
     ny.rabatt > 0 ? `Familierabatt trukket fra: −${kr(ny.rabatt)}/mnd` : "";
 
+  // Produktrabatt (engangs, veksles med D, sats justeres med Shift+D): kun
+  // kvalifiserende abonnement teller (se HURTIG_PRODUKTRABATT). Egen
+  // fullbredde-linje under kolonnene, så den ikke forstyrrer linje-/sum-
+  // justeringen mellom sidene.
+  const prodEl = document.getElementById("hurtigProduktrabatt");
+  const prodPerLev = {};
+  hurtig.valgte.forEach((v) => {
+    const p = hurtigPlan(v.id);
+    const regel = p && HURTIG_PRODUKTRABATT[p.leverandor];
+    if (!regel || !regel.kvalifiserer(p)) return;
+    prodPerLev[p.leverandor] = (prodPerLev[p.leverandor] || 0) + 1;
+  });
+  // Startbeløp per operatør, begrenset av startMaks (Telenor/ice starter
+  // aldri samlet over 500 kr). Shift+D-påslaget legges på TOTALEN (+100 per
+  // trykk), med tak lik summen av maks-satsene per kvalifiserende abo.
+  let prodTotal = 0;
+  let prodMaks = 0;
+  Object.entries(prodPerLev).forEach(([lev, n]) => {
+    const regel = HURTIG_PRODUKTRABATT[lev];
+    prodTotal += Math.min(n * regel.start, regel.startMaks ?? Infinity);
+    prodMaks += n * regel.maks;
+  });
+  if (prodMaks > 0) {
+    prodTotal = Math.min(prodTotal + hurtig.rabattEkstra, prodMaks);
+  }
+  prodEl.hidden = !hurtig.visProduktrabatt || prodTotal <= 0;
+  prodEl.textContent = prodEl.hidden ? "" : `${kr(prodTotal)} i produktrabatt`;
+
   // Differansen – det kunden skal se
   const diff = document.getElementById("hurtigDiff");
   const idag = hurtigIdagSum();
@@ -1324,27 +1414,68 @@ function renderHurtig() {
   }
 }
 
-// Beløpsfeltene godtar flere beløp på én gang ("399+299" eller "399 299").
-// Samme funksjon betjener begge sider – 'liste' er hurtig.belop eller
-// hurtig.nyBelop.
-function hurtigLeggTilBelop(feltId, liste) {
+// Deler en totalpris i 'antall' like linjer som summerer eksakt (resten
+// legges på de første). 1000/3 -> [334, 333, 333]. Kunder oppgir ofte
+// husstandens totalpris, ikke pris per abonnement.
+function fordelBelop(total, antall) {
+  const grunn = Math.floor(total / antall);
+  const rest = Math.round(total) - grunn * antall;
+  return Array.from({ length: antall }, (_, i) => grunn + (i < rest ? 1 : 0));
+}
+
+// Felles vei for å legge til et beløp: oppdaterer trinnet og angre-
+// historikken ('side' er "belop" eller "nyBelop"). Kalles fra beløpsfeltene,
+// hurtigvalg-knappene og talltastene. Kaller IKKE renderHurtig selv.
+function hurtigLeggTilBelopLinje(side, belop) {
+  hurtig[side].push(belop);
+  hurtig.sisteTillegg.push(side);
+  // Trinnet følger siden selgeren jobber på.
+  hurtig.trinn = side === "nyBelop" ? "nyBelopvalg" : "belopvalg";
+}
+
+// Beløpsfeltene godtar flere beløp på én gang ("399+299" eller "399 299"),
+// og "total/antall" for å fordele en totalpris på flere personer ("1000/3").
+// Samme funksjon betjener begge sider.
+function hurtigLeggTilBelop(feltId, side) {
   const felt = document.getElementById(feltId);
-  const verdier = felt.value
-    .split(/[+,\s]+/)
-    .map((t) => Number(t.replace(",", ".")))
-    .filter((n) => Number.isFinite(n) && n > 0);
+  const raw = felt.value.trim();
+  const delt = raw.match(/^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+)$/);
+  let verdier;
+  if (delt) {
+    const total = Number(delt[1].replace(",", "."));
+    const antall = Number(delt[2]);
+    verdier = total > 0 && antall > 0 && antall <= 20 ? fordelBelop(total, antall) : [];
+  } else {
+    verdier = raw
+      .split(/[+,\s]+/)
+      .map((t) => Number(t.replace(",", ".")))
+      .filter((n) => Number.isFinite(n) && n > 0);
+  }
   if (verdier.length) {
-    liste.push(...verdier);
-    // Trinnet følger siden selgeren jobber på.
-    hurtig.trinn = liste === hurtig.nyBelop ? "nyBelopvalg" : "belopvalg";
+    verdier.forEach((v) => hurtigLeggTilBelopLinje(side, v));
     renderHurtig();
   }
   felt.value = "";
   felt.focus();
 }
 
+// Backspace = angre siste tillegg (beløp eller abonnement, begge sider).
+// Hopper over kilder som allerede er tømt på annet vis (✕ / operatørbytte).
+function hurtigAngreSiste() {
+  while (hurtig.sisteTillegg.length) {
+    const kilde = hurtig.sisteTillegg.pop();
+    const liste = kilde === "valgte" ? hurtig.valgte : hurtig[kilde];
+    if (liste.length) {
+      liste.pop();
+      renderHurtig();
+      return;
+    }
+  }
+}
+
 function hurtigLeggTilPlan(id) {
   hurtig.valgte.push({ id, alder: null }); // ny SIM, voksen (30+) som standard
+  hurtig.sisteTillegg.push("valgte");
   // Abonnement valgt = selgeren jobber på høyresiden.
   hurtig.trinn = "nyBelopvalg";
   renderHurtig();
@@ -1528,6 +1659,22 @@ function rabattBelopKr() {
   const v = Number(document.getElementById("rabattBelop").value);
   if (Number.isNaN(v) || v <= 0) return 0;
   return Math.min(v, RABATT_MAKS_KR);
+}
+
+// D-tasten i vanlig kalkulator: produktrabatt av/på. Husker forrige beløp
+// (standard 500) og skriver via menyfeltet, slik at menyen og hurtigtasten
+// alltid er i takt (input-lytteren lagrer og oppdaterer anbefalingen).
+let sisteRabattBelop = 500;
+function produktrabattVeksle() {
+  const felt = document.getElementById("rabattBelop");
+  const naa = rabattBelopKr();
+  if (naa > 0) {
+    sisteRabattBelop = naa;
+    felt.value = 0;
+  } else {
+    felt.value = sisteRabattBelop || 500;
+  }
+  felt.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 function lagreMeny() {
@@ -1959,16 +2106,16 @@ async function start() {
   // gjør det samme som Enter – neste trinn i flyten.
   document.getElementById("hurtigIdagEtikett").addEventListener("click", hurtigEnter);
   document.getElementById("hurtigLeggTil").addEventListener("click", () =>
-    hurtigLeggTilBelop("hurtigBelop", hurtig.belop)
+    hurtigLeggTilBelop("hurtigBelop", "belop")
   );
   document.getElementById("hurtigBelop").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") hurtigLeggTilBelop("hurtigBelop", hurtig.belop);
+    if (e.key === "Enter") hurtigLeggTilBelop("hurtigBelop", "belop");
   });
   document.getElementById("hurtigNyLeggTil").addEventListener("click", () =>
-    hurtigLeggTilBelop("hurtigNyBelop", hurtig.nyBelop)
+    hurtigLeggTilBelop("hurtigNyBelop", "nyBelop")
   );
   document.getElementById("hurtigNyBelop").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") hurtigLeggTilBelop("hurtigNyBelop", hurtig.nyBelop);
+    if (e.key === "Enter") hurtigLeggTilBelop("hurtigNyBelop", "nyBelop");
   });
 
   // Diskrete hurtigtaster: Q/W/E henter frem operatørens abonnement, samme
@@ -2035,7 +2182,7 @@ async function start() {
         // "belopvalg" = venstre side (i dag), "nyBelopvalg" = høyre (med oss).
         const b = HURTIG_FORSLAG[idx];
         if (b) {
-          (mal === "nyBelopvalg" ? hurtig.nyBelop : hurtig.belop).push(b);
+          hurtigLeggTilBelopLinje(mal === "nyBelopvalg" ? "nyBelop" : "belop", b);
           renderHurtig();
         }
       }
@@ -2056,6 +2203,26 @@ async function start() {
       // U = bla aldersgruppe (30+ -> u30 -> ev. u13) på siste abo-linje
       e.preventDefault();
       hurtigBladAlder(hurtig.valgte.length - 1);
+    } else if (e.key === "Backspace") {
+      // Backspace = angre siste tillegg. I felt: vanlig tekstsletting.
+      if (e.target instanceof HTMLInputElement) return;
+      e.preventDefault();
+      hurtigAngreSiste();
+    } else if (e.key.toLowerCase() === "d") {
+      // D = vis/skjul produktrabatt. Shift+D = øk TOTALEN med 100 kr per
+      // trykk (taket håndteres i renderingen).
+      e.preventDefault();
+      if (e.shiftKey && hurtig.visProduktrabatt) {
+        hurtig.rabattEkstra += 100;
+      } else {
+        hurtig.visProduktrabatt = !hurtig.visProduktrabatt;
+        if (!hurtig.visProduktrabatt) hurtig.rabattEkstra = 0;
+      }
+      renderHurtig();
+    } else if (e.key.toLowerCase() === "g") {
+      // G = overfør til full anbefaling i kalkulatoren
+      e.preventDefault();
+      hurtigTilKalkulator();
     } else if (e.key.toLowerCase() === "r") {
       // R = ny kunde (samme som ↺ Nullstill). Cmd/Ctrl+R (reload) er
       // allerede sluppet gjennom av modifikator-vakten over.
@@ -2097,6 +2264,14 @@ async function start() {
   // Delegert: dagens operatør, hurtigvalg-beløp, abonnement-taster, fjern
   // linje (begge sider)
   document.getElementById("hurtigVisning").addEventListener("click", (e) => {
+    // Høyresidens operatørknapper (deler stil-klasse med venstresidens, så
+    // denne må sjekkes først): samme som Q/W/E – åpne/lukk abo-listen.
+    const nyLevKnapp = e.target.closest("[data-nylev]");
+    if (nyLevKnapp) {
+      const navn = nyLevKnapp.dataset.nylev;
+      hurtigVisLev(hurtig.lev === navn ? null : navn);
+      return;
+    }
     const levKnapp = e.target.closest(".hurtig-lev-knapp");
     if (levKnapp) {
       // Samme knapp igjen = fjern valget.
@@ -2106,10 +2281,10 @@ async function start() {
     }
     const belopvalg = e.target.closest(".hurtig-belopvalg");
     if (belopvalg) {
-      const liste = belopvalg.dataset.side === "ny" ? hurtig.nyBelop : hurtig.belop;
-      liste.push(Number(belopvalg.dataset.belop));
-      // Trinnet følger siden selgeren jobber på.
-      hurtig.trinn = belopvalg.dataset.side === "ny" ? "nyBelopvalg" : "belopvalg";
+      hurtigLeggTilBelopLinje(
+        belopvalg.dataset.side === "ny" ? "nyBelop" : "belop",
+        Number(belopvalg.dataset.belop)
+      );
       renderHurtig();
       return;
     }
@@ -2158,11 +2333,13 @@ async function start() {
     if (e.key === "Escape" && !guideOverlay.hidden) guideOverlay.hidden = true;
   });
 
-  // F i vanlig kalkulator: «Dette er inkludert»-tabellen for dagens
-  // leverandør (nedtrekksmenyen) mot den ANBEFALTE operatøren. Virker på
-  // resultatsiden – oversikten har sin egen F-håndtering (lytteren over).
+  // Hurtigtaster i vanlig kalkulator – de samme som i oversikten der de gir
+  // mening: F («Dette er inkludert»), K (koder for anbefalingen), D
+  // (produktrabatt av/på) og R (ny kunde). Kapres aldri med fokus i
+  // skjemafelt – hovedskjermen har ekte tekstfelt og nedtrekkslister
+  // (der f.eks. F hopper til «Fjordkraft Mobil»).
   document.addEventListener("keydown", (e) => {
-    if (!document.getElementById("hurtigVisning").hidden) return;
+    if (!document.getElementById("hurtigVisning").hidden) return; // oversikten har egen lytter
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const fordelOverlay = document.getElementById("fordelOverlay");
     if (!fordelOverlay.hidden) {
@@ -2172,21 +2349,45 @@ async function start() {
       }
       return;
     }
-    if (e.key.toLowerCase() !== "f") return;
-    // Ikke kapre F i skjemafelt – hovedskjermen har ekte tekstfelt og
-    // nedtrekkslister (der F hopper til «Fjordkraft Mobil» o.l.).
+    const tilbudOverlay = document.getElementById("tilbudOverlay");
+    if (!tilbudOverlay.hidden) {
+      if (e.key.toLowerCase() === "k" || e.key === "Escape") {
+        e.preventDefault();
+        tilbudOverlay.hidden = true;
+      }
+      return;
+    }
     if (
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLSelectElement ||
       e.target instanceof HTMLTextAreaElement
     )
       return;
-    if (document.getElementById("resultatVisning").hidden) return;
-    if (!sisteResultat || !sisteResultat.anbefalt) return;
-    e.preventDefault();
-    const valgt = document.getElementById("leverandor").value;
-    const dagens = valgt && valgt !== "Annen / vet ikke" ? valgt : null;
-    visFordeler(dagens, sisteResultat.anbefalt.leverandor);
+    const paInput = !document.getElementById("inputVisning").hidden;
+    const paResultat = !document.getElementById("resultatVisning").hidden;
+    const harAnbefaling = paResultat && sisteResultat && sisteResultat.anbefalt;
+    if (e.key.toLowerCase() === "f") {
+      if (!harAnbefaling) return;
+      e.preventDefault();
+      const valgt = document.getElementById("leverandor").value;
+      const dagens = valgt && valgt !== "Annen / vet ikke" ? valgt : null;
+      visFordeler(dagens, sisteResultat.anbefalt.leverandor);
+    } else if (e.key.toLowerCase() === "k") {
+      // K = kode-vinduet for den anbefalte operatøren (som «Velg tilbud»)
+      if (!harAnbefaling) return;
+      e.preventDefault();
+      visTilbud(sisteResultat.anbefalt.leverandor);
+    } else if (e.key.toLowerCase() === "d") {
+      // D = produktrabatt av/på (samme som å sette menyens beløp til 0/tilbake)
+      if (!paInput && !paResultat) return;
+      e.preventDefault();
+      produktrabattVeksle();
+    } else if (e.key.toLowerCase() === "r") {
+      // R = ny kunde (samme som ↺-knappen)
+      if (!paInput && !paResultat) return;
+      e.preventDefault();
+      nyKunde();
+    }
   });
 
   oppdater();

@@ -1499,6 +1499,20 @@ footer {
    ligger på nøyaktig samme linje selv når bare én side har rabatt-tekst. */
 .hurtig-rabatt { font-size: 12.5px; font-weight: 600; color: var(--gronn); text-align: right; min-height: 19px; }
 
+/* Produktrabatt-linje (engangs, veksles med D) – fullbredde under kolonnene */
+.hurtig-produktrabatt {
+  margin-top: 16px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: #fdf6e2;
+  border: 1px solid #f0e2b6;
+  color: #8a6412;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+.hurtig-produktrabatt:not([hidden]) + .hurtig-diff { margin-top: 10px; }
+
 .hurtig-diff {
   margin-top: 16px;
   border-radius: 12px;

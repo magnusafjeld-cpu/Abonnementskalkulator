@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=70" />
+  <link rel="stylesheet" href="style.css?v=71" />
 </head>
 <body>
   <header>
@@ -198,7 +198,7 @@
             <div class="hurtig-etikett" id="hurtigIdagEtikett" title="Trykk for ren visning (samme som Enter)">I dag</div>
             <div id="hurtigDagensLev" class="hurtig-dagens-lev"></div>
             <div class="hurtig-input-rad">
-              <input id="hurtigBelop" type="text" inputmode="decimal" autocomplete="off" placeholder="Beløp, f.eks. 399+299" aria-label="Legg til dagens beløp" />
+              <input id="hurtigBelop" type="text" inputmode="decimal" autocomplete="off" placeholder="Beløp" aria-label="Legg til dagens beløp" />
               <button type="button" id="hurtigLeggTil" aria-label="Legg til beløp">+</button>
             </div>
             <div id="hurtigForslag" class="hurtig-forslag"></div>
@@ -212,9 +212,10 @@
 
           <!-- Høyre: med oss (nøytral – operatør hentes diskret med Q/W/E) -->
           <div class="hurtig-side hurtig-hoyre">
-            <div class="hurtig-etikett" id="hurtigMedOssEtikett" title="Trykk her eller bruk Q/W/E – se (i) for alle hurtigtaster">Med oss</div>
+            <div class="hurtig-etikett" id="hurtigMedOssEtikett" title="Trykk operatørknappene eller bruk Q/W/E – se (i) for alle hurtigtaster">Med oss</div>
+            <div id="hurtigNyLev" class="hurtig-dagens-lev"></div>
             <div class="hurtig-input-rad">
-              <input id="hurtigNyBelop" type="text" inputmode="decimal" autocomplete="off" placeholder="Beløp, f.eks. 399+299" aria-label="Legg til beløp hos oss" />
+              <input id="hurtigNyBelop" type="text" inputmode="decimal" autocomplete="off" placeholder="Beløp" aria-label="Legg til beløp hos oss" />
               <button type="button" id="hurtigNyLeggTil" aria-label="Legg til beløp">+</button>
             </div>
             <div id="hurtigForslagNy" class="hurtig-forslag"></div>
@@ -228,6 +229,7 @@
           </div>
         </div>
 
+        <div id="hurtigProduktrabatt" class="hurtig-produktrabatt" hidden></div>
         <div id="hurtigDiff" class="hurtig-diff"></div>
       </section>
     </div>
@@ -301,7 +303,7 @@
           <h3>Oppsett</h3>
           <ul>
             <li><b>Venstre side</b> – kundens pris i dag: trykk operatør og beløp, eller skriv inn.</li>
-            <li><b>Høyre side</b> – vår pris: trykk beløp, eller hent abonnement med hurtigtastene.</li>
+            <li><b>Høyre side</b> – vår pris: trykk beløp, eller hent abonnement via operatørknappene (eller Q/W/E).</li>
             <li><b>Familierabatt</b> regnes automatisk inn i abonnementsprisene.</li>
           </ul>
         </section>
@@ -310,12 +312,15 @@
           <ul>
             <li><b>Q / W / E</b> – abonnement fra Telenor / Telia / ice (samme tast skjuler)</li>
             <li><b>1–9 og 0</b> – velg knappen med samme tall-merke (0 = nr. 10). I operatør-trinnet kan du bytte fritt til Enter bekrefter</li>
-            <li><b>Egne beløp</b> – klikk i beløpsfeltet og skriv (f.eks. 429+298)</li>
+            <li><b>Egne beløp</b> – klikk i beløpsfeltet og skriv (f.eks. 429+298, eller 1000/3 for totalpris fordelt på 3)</li>
             <li><b>Enter</b> – neste trinn: operatør → beløp i dag → beløp/abo hos oss → ren visning (Enter igjen henter alt tilbake)</li>
             <li><b>Escape</b> – tilbake ett steg: fra ren visning til bygging, eller lukk abonnementslisten</li>
             <li><b>F</b> – «Dette er inkludert»-tabell for begge operatørene</li>
             <li><b>K</b> – koder til Blueberry for de valgte abonnementene</li>
             <li><b>U</b> – bytt aldersgruppe (30+/u30/u13) på siste abo-linje, eller trykk merket på linjen. Gir riktig ungdomspris hos Telenor</li>
+            <li><b>Backspace</b> – angre siste tillegg (beløp eller abonnement)</li>
+            <li><b>D</b> – vis/skjul produktrabatt: 500 kr per Telia X, 300 kr per Telenor ubegrenset og ice-abo fra 299 kr (Telenor/ice starter samlet aldri over 500). Shift+D øker totalen med 100 kr (maks 1000 per Telia X, 500 per Telenor/ice-abo)</li>
+            <li><b>G</b> – overfør tallene til kalkulatoren og få full anbefaling</li>
             <li><b>S</b> – skjul/vis operatørnavn</li>
             <li><b>R</b> – ny kunde (tømmer alt)</li>
           </ul>
@@ -378,7 +383,7 @@
             <li><b>Besparelse</b> vises mot dagens pris (måned og år).</li>
             <li><b>Fordeling per person</b> viser hva hver betaler.</li>
             <li><b>Andre alternativer</b> kan åpnes for å sammenligne de øvrige.</li>
-            <li>Trykk <b>F</b> for «Dette er inkludert» – dagens leverandør mot den anbefalte.</li>
+            <li>Hurtigtaster: <b>F</b> = «Dette er inkludert», <b>K</b> = kodene, <b>D</b> = produktrabatt av/på, <b>R</b> = ny kunde.</li>
           </ul>
         </section>
 
@@ -413,6 +418,6 @@
   </div>
 
   <script src="kalkulator.js?v=46"></script>
-  <script src="app.js?v=99"></script>
+  <script src="app.js?v=110"></script>
 </body>
 </html>
