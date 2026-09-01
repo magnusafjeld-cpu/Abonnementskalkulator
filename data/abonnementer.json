@@ -1,5 +1,5 @@
 {
-  "_kommentar": "Offentlig prisinfo. Oppdateres månedlig. Navn følger operatørenes egne (telenor.no, telia.no, ice.no). Pris i NOK/mnd per SIM. 'ubegrenset': true = fri data. 'hastighet_mbit' = maks hastighet planen leverer (brukes mot hastighetskrav Vanlig/Rask/Lynrask). 'alder_maks' = planen er kun for brukere t.o.m. denne alderen (junior/ung). 'alder_rabatt' = aldersbasert avslag. 'gir_familierabatt': false = planen kvalifiserer IKKE for familierabatt (ungdoms-/juniorplaner). Default ja. 'peak_pris' = pris under Sommerpeak-modus (brukes når Peak er på; ellers pris_per_sim). 'for_pris' = eksplisitt ordinær 'før'-pris som vises overstreket i fordelingen (brukes for kampanjeplaner som ikke har en egen normalpris, f.eks. Telia X Kampanje 399 med førpris 449). Priser og hastigheter er omtrentlige/eksempler - sjekk og oppdater månedlig.",
+  "_kommentar": "Offentlig prisinfo. Oppdateres månedlig. Navn følger operatørenes egne (telenor.no, telia.no, ice.no). Pris i NOK/mnd per SIM. 'ubegrenset': true = fri data. 'hastighet_mbit' = maks hastighet planen leverer (brukes mot hastighetskrav Vanlig/Rask/Lynrask). 'alder_maks' = planen er kun for brukere t.o.m. denne alderen (junior/ung). 'alder_rabatt' = aldersbasert avslag. 'gir_familierabatt': false = planen kvalifiserer IKKE for familierabatt (ungdoms-/juniorplaner). Default ja. Priser og hastigheter er omtrentlige/eksempler - sjekk og oppdater månedlig.",
   "_hastighet_note": "Fastdata-/kappede planer kjører normalt full nettverkshastighet (satt høyt). Ubegrenset deles i hastighetstrinn. ice-verdiene er satt moderat (eget nett) - juster ved behov.",
   "_familierabatt_modeller": {
     "familiemedlem_fastpris": "Telenor-stil (IKKE familierabatt, men prisfordeling per person): hovedabonnent (dyreste kvalifiserte) betaler full pris, hvert ekstra medlem på ubegrenset betaler en FAST, lavere 'medlemspris' etter alder (voksen/under_30). Generell medlemspris har voksen og under_30; en under 13 faller tilbake på voksenprisen MED MINDRE planen har 'familie_medlemspris' (f.eks. Sikre Mobil: under_13 = 249). Vises som differensiert pris per person, ikke som en samlet rabattlinje. Gjelder kun ubegrenset (gjelder_kun_ubegrenset). Medlemmer med fastdata betaler egen pris.",
@@ -114,8 +114,7 @@
       "data_gb": 5,
       "ubegrenset": false,
       "hastighet_mbit": 250,
-      "pris_per_sim": 369,
-      "peak_pris": 299
+      "pris_per_sim": 369
     },
     {
       "id": "telia_10",
@@ -124,8 +123,7 @@
       "data_gb": 10,
       "ubegrenset": false,
       "hastighet_mbit": 250,
-      "pris_per_sim": 419,
-      "peak_pris": 369
+      "pris_per_sim": 419
     },
     {
       "id": "telia_x_start",
@@ -135,21 +133,7 @@
       "ubegrenset": true,
       "hastighet_mbit": 10,
       "pris_per_sim": 499,
-      "peak_pris": 449,
       "produktrabatt": true
-    },
-    {
-      "id": "telia_x_kampanje",
-      "leverandor": "Telia",
-      "navn": "Telia X Kampanje",
-      "data_gb": 0,
-      "ubegrenset": true,
-      "hastighet_mbit": 10,
-      "pris_per_sim": 399,
-      "for_pris": 449,
-      "produktrabatt": true,
-      "gir_familierabatt": false,
-      "kun_peak": true
     },
     {
       "id": "telia_x_basis",
@@ -159,7 +143,6 @@
       "ubegrenset": true,
       "hastighet_mbit": 250,
       "pris_per_sim": 549,
-      "peak_pris": 499,
       "produktrabatt": true
     },
     {
@@ -170,7 +153,6 @@
       "ubegrenset": true,
       "hastighet_mbit": 1000,
       "pris_per_sim": 649,
-      "peak_pris": 599,
       "produktrabatt": true
     },
     {
@@ -181,7 +163,6 @@
       "ubegrenset": true,
       "hastighet_mbit": 250,
       "pris_per_sim": 449,
-      "peak_pris": 399,
       "produktrabatt": true,
       "alder_maks": 29,
       "gir_familierabatt": false
@@ -194,7 +175,6 @@
       "ubegrenset": false,
       "hastighet_mbit": 250,
       "pris_per_sim": 349,
-      "peak_pris": 299,
       "alder_maks": 29,
       "gir_familierabatt": false
     },
@@ -206,7 +186,6 @@
       "ubegrenset": false,
       "hastighet_mbit": 250,
       "pris_per_sim": 229,
-      "peak_pris": 114,
       "alder_maks": 15,
       "gir_familierabatt": false
     },
@@ -218,7 +197,6 @@
       "ubegrenset": false,
       "hastighet_mbit": 250,
       "pris_per_sim": 129,
-      "peak_pris": 64,
       "alder_maks": 15,
       "gir_familierabatt": false
     },
@@ -281,8 +259,7 @@
       "data_gb": 0,
       "ubegrenset": true,
       "hastighet_mbit": 200,
-      "pris_per_sim": 399,
-      "peak_pris": 349
+      "pris_per_sim": 399
     },
     {
       "id": "ice_max_netflix",

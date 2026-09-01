@@ -245,7 +245,7 @@ let sisteResultat = null;
 
 // «Ny kunde»: tøm alt kundespesifikt (personer, alder/behov, dagens pris og
 // leverandør, kundeprioritet) for å starte rent på neste kunde. Beholder
-// innstillinger som ikke gjelder kunden: priser, Sommerpeak, lokal dekning og
+// innstillinger som ikke gjelder kunden: priser, lokal dekning og
 // burgermeny-valg (produktrabatt-kampanje, preferanse, toggles).
 function nyKunde() {
   state.brukere = [nyBruker()];
@@ -539,10 +539,10 @@ function byggFordeling(lev, brukere, produktrabattKr) {
   lev.brukerPlaner.forEach((v, i) => {
     const b = brukere[i];
     // Personprisen som faktisk betales: Telenor-medlemspris hvis satt, ellers
-    // listeprisen (som allerede er peak-pris når Sommerpeak er på).
+    // listeprisen.
     const betalt = v.visPris != null ? v.visPris : v.pris;
-    // «Før»-pris: ordinær (ikke-peak) listepris. Fanger både Sommerpeak-rabatt og
-    // Telenor-medlemspris. Vises overstreket over betalt pris når det er rabatt.
+    // «Før»-pris: ordinær listepris. Fanger Telenor-medlemsprisen og vises
+    // overstreket over betalt pris når det er rabatt.
     const ordinaer = planPrisOrdinaer(v.plan, v.alder);
     const rabattert = betalt < ordinaer;
     html += `
@@ -633,9 +633,7 @@ function visTilbudFor(brukerPlaner, leverandorNavn) {
     r.koder.some((k) => k.type === "mangler")
   );
 
-  let html = `<p class="tilbud-intro">Legg inn disse kodene i Blueberry for <b>${leverandorNavn}</b>${
-    data.peak ? ' <span class="tilbud-peak">☀ Sommerpeak aktiv</span>' : ""
-  }</p>`;
+  let html = `<p class="tilbud-intro">Legg inn disse kodene i Blueberry for <b>${leverandorNavn}</b></p>`;
   if (manglerKode.length) {
     const personer = manglerKode.map((r) => `Person ${r.person}`).join(", ");
     html += `<div class="tilbud-mangler-varsel">⚠ ${
@@ -733,26 +731,11 @@ function planAldersNotat(p) {
 }
 
 function prisStatusTekst() {
-  const modus = erPeak() ? "☀ Sommerpeak-priser" : "Normalpriser";
-  return harLokaleEndringer() ? modus + " · ● lokale endringer" : modus;
+  return harLokaleEndringer() ? "Normalpriser · ● lokale endringer" : "Normalpriser";
 }
 
 function renderPrisoversikt() {
   let html = '<h1 class="pris-tittel">Prisoversikt &amp; rabattlogikk</h1>';
-
-  // Sommerpeak-bryter (kun her)
-  html += `<div id="peakBar" class="peak-bar${erPeak() ? " aktiv" : ""}">
-      <div class="peak-info">
-        <span class="peak-ikon">☀</span>
-        <span class="peak-tekst"><b>Sommerpeak 2026</b> <span class="peak-status">${
-          erPeak() ? "kampanjepriser aktive" : "av – normalpriser"
-        }</span></span>
-      </div>
-      <label class="peak-switch" aria-label="Skru Sommerpeak av/på">
-        <input type="checkbox" id="peakToggle" ${erPeak() ? "checked" : ""} />
-        <span class="toggle-slider"></span>
-      </label>
-    </div>`;
 
   // Verktøylinje: status + tilbakestill
   html += `<div class="pris-verktoy">
@@ -1648,7 +1631,7 @@ function kalkTast(k) {
 // ---- Lagring av menyvalg (burgermeny) -----------------------
 // Lagrer valgene i hamburgermenyen lokalt slik at de overlever en omlasting
 // (produktrabatt, kundepreferanse og innstillings-bryterne). Lokal dekning og
-// priser/Peak lagres separat i kalkulator.js.
+// priser lagres separat i kalkulator.js.
 const MENY_NOKKEL = "elkjop_meny_v1";
 
 // Maks produktrabatt per Telia X. Beløpsfeltet i menyen klampes til dette.
@@ -2038,12 +2021,6 @@ async function start() {
   // Prisoversikt: redigerbare priser, tilbakestill, fjern/legg til abonnement (delegert)
   const prisInnhold = document.getElementById("prisInnhold");
   prisInnhold.addEventListener("change", (e) => {
-    if (e.target.id === "peakToggle") {
-      settPeak(e.target.checked);
-      renderPrisoversikt(); // oppdaterer priser + bar-status
-      oppdater(); // påvirker anbefalingen
-      return;
-    }
     // «Gir familierabatt»: vis/skjul beløpsfeltet i «legg til»-skjemaet.
     if (e.target.id === "nyFamilierabatt") {
       const kr = document.getElementById("nyFamilierabattKr");

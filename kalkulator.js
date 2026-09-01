@@ -82,19 +82,17 @@ let INKLUDERT = {};
 let FORDELER = {};
 let PRIORITET = {};
 let SALGSKODER = {};   // plan-id -> { kode, binding }
-let TELIA_X_IDS = [];  // plan-id-er som regnes som "Telia X" (utløser peakkoder)
-let TELIA_X_UTEN_FAM = []; // Telia X-planer som IKKE skal ha familiekode (men beholder peaksupport)
-let EKSTRAKODER = {};  // familie-/peakkoder
+let EKSTRAKODER = {};  // familiekoder o.l. som legges i tillegg til hovedkoden
 let SCORE = { dekning: {}, sikkerhet_basis: {} }; // dekning/sikkerhet pr. operatør
 let LOKAL_DEKNING = {}; // lokale dekningsoverstyringer pr. operatør (avanserte innst.)
 let UTMERKELSER = {};   // utmerkelser/priser pr. operatør (vises i anbefalingen)
 
-// Lokale endringer lagret i nettleseren (priser per modus + nye abonnement).
+// Lokale endringer lagret i nettleseren (prisoverstyringer + nye abonnement).
 const LAGER_NOKKEL = "elkjop_abo_endringer_v2";
-const PEAK_NOKKEL = "elkjop_peak";
+// Utgått nøkkel fra Sommerpeak 2026 – ryddes bort ved oppstart.
+const PEAK_NOKKEL_UTGATT = "elkjop_peak";
 const DEKNING_NOKKEL = "elkjop_lokal_dekning";
-let LOKALE_ENDRINGER = { priser: { normal: {}, peak: {} }, nye: [] };
-let PEAK = true; // Sommerpeak-modus (kampanjepriser). Standard: på.
+let LOKALE_ENDRINGER = { priser: {}, nye: [] };
 
 async function lastData() {
   // no-store: unngå at nettleseren serverer utdaterte priser etter at
@@ -119,10 +117,7 @@ async function lastData() {
   UTMERKELSER = abo.utmerkelser || {};
   PRIORITET = pri.prioritet;
   SALGSKODER = kod.salgskoder || {};
-  TELIA_X_IDS = kod.telia_x_ids || [];
-  TELIA_X_UTEN_FAM = kod.telia_x_uten_familiekode || [];
   EKSTRAKODER = kod.ekstrakoder || {};
-  lastPeak();
   lastLokalDekning();
   lastLokaleEndringer();
   byggAbonnementer();
@@ -167,32 +162,9 @@ function harLokalDekning() {
   return Object.keys(LOKAL_DEKNING).length > 0;
 }
 
-// ---- Peak-modus (Sommerpeak 2026) ---------------------------
-function lastPeak() {
-  // Standard: PÅ. Respekterer lagret valg hvis selger har skrudd det av.
-  try {
-    const v = localStorage.getItem(PEAK_NOKKEL);
-    PEAK = v === null ? true : v === "1";
-  } catch {
-    PEAK = true;
-  }
-}
-function settPeak(paa) {
-  PEAK = !!paa;
-  try {
-    localStorage.setItem(PEAK_NOKKEL, PEAK ? "1" : "0");
-  } catch {}
-  byggAbonnementer();
-}
-function erPeak() {
-  return PEAK;
-}
-function aktivModus() {
-  return PEAK ? "peak" : "normal";
-}
-// Basepris for et abonnement i gjeldende modus (peak_pris ved Peak hvis satt).
+// Listepris for et abonnement (før lokale overstyringer).
 function basePris(p) {
-  return PEAK && p.peak_pris != null ? p.peak_pris : p.pris_per_sim;
+  return p.pris_per_sim;
 }
 
 // ---- Lokale prisendringer / nye abonnement -------------------
@@ -200,13 +172,21 @@ function lastLokaleEndringer() {
   try {
     const lagret = JSON.parse(localStorage.getItem(LAGER_NOKKEL) || "null");
     const pris = (lagret && lagret.priser) || {};
-    LOKALE_ENDRINGER = {
-      priser: { normal: pris.normal || {}, peak: pris.peak || {} },
-      nye: (lagret && lagret.nye) || [],
-    };
+    // Migrering fra Sommerpeak-formatet { normal: {...}, peak: {...} }: behold
+    // normalprisene og forkast peak-overstyringene (kampanjen er over). Nyere
+    // lagringer er allerede flate { id: pris }.
+    const flat = pris.normal || pris.peak ? pris.normal || {} : pris;
+    // Egendefinerte abonnement kan ha fått en peak_pris da selgeren redigerte
+    // dem under kampanjen – den er ikke lenger gyldig.
+    const nye = ((lagret && lagret.nye) || []).map(({ peak_pris, ...p }) => p);
+    LOKALE_ENDRINGER = { priser: flat, nye };
   } catch {
-    LOKALE_ENDRINGER = { priser: { normal: {}, peak: {} }, nye: [] };
+    LOKALE_ENDRINGER = { priser: {}, nye: [] };
   }
+  // Rydd bort den utgåtte peak-bryterens lagrede valg.
+  try {
+    localStorage.removeItem(PEAK_NOKKEL_UTGATT);
+  } catch {}
 }
 
 function lagreLokaleEndringer() {
@@ -215,45 +195,27 @@ function lagreLokaleEndringer() {
   } catch {}
 }
 
-// Bygger den effektive ABONNEMENTER-lista: base/peak-pris med modus-spesifikke
-// overstyringer + nye abonnement.
+// Bygger den effektive ABONNEMENTER-lista: listepris med lokale overstyringer
+// + nye abonnement.
 function byggAbonnementer() {
-  const overstyr = LOKALE_ENDRINGER.priser[aktivModus()] || {};
-  const overstyrNormal = LOKALE_ENDRINGER.priser.normal || {};
-  const bygg = (p) => {
-    const eff = overstyr[p.id] != null ? overstyr[p.id] : basePris(p);
-    // Ordinær (ikke-peak) pris – referansen for «før»-pris når Sommerpeak gir
-    // rabatt. Prioritet: normal-overstyring > eksplisitt 'for_pris' (kampanje­
-    // planer uten egen normalpris, f.eks. Telia X Kampanje) > planens normale
-    // listepris.
-    const ordinaer =
-      overstyrNormal[p.id] != null
-        ? overstyrNormal[p.id]
-        : p.for_pris != null
-        ? p.for_pris
-        : p.pris_per_sim;
-    return { ...p, pris_per_sim: eff, pris_ordinaer: ordinaer };
-  };
-  // Kampanje-abonnement (kun_peak) vises kun når Sommerpeak er på.
-  const synlig = (p) => PEAK || !p.kun_peak;
-  ABONNEMENTER = BASE_ABONNEMENTER.concat(LOKALE_ENDRINGER.nye)
-    .filter(synlig)
-    .map(bygg);
+  const overstyr = LOKALE_ENDRINGER.priser || {};
+  const bygg = (p) => ({
+    ...p,
+    pris_per_sim: overstyr[p.id] != null ? overstyr[p.id] : basePris(p),
+  });
+  ABONNEMENTER = BASE_ABONNEMENTER.concat(LOKALE_ENDRINGER.nye).map(bygg);
 }
 
 function settPris(id, pris) {
-  const modus = aktivModus();
   const nyPlan = LOKALE_ENDRINGER.nye.find((p) => p.id === id);
   if (nyPlan) {
-    // Nytt abonnement: lagre pris direkte (peak_pris i peak-modus).
-    if (PEAK) nyPlan.peak_pris = pris;
-    else nyPlan.pris_per_sim = pris;
+    nyPlan.pris_per_sim = pris; // nytt abonnement: lagre prisen direkte
   } else {
     const base = BASE_ABONNEMENTER.find((p) => p.id === id);
     if (base && basePris(base) === pris) {
-      delete LOKALE_ENDRINGER.priser[modus][id]; // tilbake til standard
+      delete LOKALE_ENDRINGER.priser[id]; // tilbake til standard
     } else {
-      LOKALE_ENDRINGER.priser[modus][id] = pris;
+      LOKALE_ENDRINGER.priser[id] = pris;
     }
   }
   lagreLokaleEndringer();
@@ -273,7 +235,7 @@ function fjernNyttAbonnement(id) {
 }
 
 function tilbakestillEndringer() {
-  LOKALE_ENDRINGER = { priser: { normal: {}, peak: {} }, nye: [] };
+  LOKALE_ENDRINGER = { priser: {}, nye: [] };
   try {
     localStorage.removeItem(LAGER_NOKKEL);
   } catch {}
@@ -282,8 +244,7 @@ function tilbakestillEndringer() {
 
 function harLokaleEndringer() {
   return (
-    Object.keys(LOKALE_ENDRINGER.priser.normal).length > 0 ||
-    Object.keys(LOKALE_ENDRINGER.priser.peak).length > 0 ||
+    Object.keys(LOKALE_ENDRINGER.priser).length > 0 ||
     LOKALE_ENDRINGER.nye.length > 0
   );
 }
@@ -291,7 +252,7 @@ function erNyttAbonnement(id) {
   return LOKALE_ENDRINGER.nye.some((p) => p.id === id);
 }
 function erEndretPris(id) {
-  return id in (LOKALE_ENDRINGER.priser[aktivModus()] || {});
+  return id in (LOKALE_ENDRINGER.priser || {});
 }
 
 // Inkluderte tjenester for en leverandør (f.eks. Telenor: Nettvern+).
@@ -378,14 +339,13 @@ function prisMedAldersrabatt(base, p, alder) {
   return Math.max(0, pris);
 }
 
-// Pris for én plan for en gitt alder (etter eventuell aldersrabatt). Bruker den
-// effektive prisen (peak-pris når Sommerpeak er på).
+// Pris for én plan for en gitt alder (etter eventuell aldersrabatt).
 function planPris(p, alder) {
   return prisMedAldersrabatt(p.pris_per_sim, p, alder);
 }
 
-// Ordinær (ikke-peak) alderstilpasset pris – «før»-prisen som vises overstreket
-// når Sommerpeak gir rabatt på planen.
+// Listepris for alderen – «før»-prisen som vises overstreket når kunden faktisk
+// betaler mindre (i dag: Telenors familie-/medlemspris).
 function planPrisOrdinaer(p, alder) {
   const base = p.pris_ordinaer != null ? p.pris_ordinaer : p.pris_per_sim;
   return prisMedAldersrabatt(base, p, alder);
@@ -883,15 +843,12 @@ function hastighetTekst(p) {
 // brukerPlaner = lev.brukerPlaner = [{plan, pris, alder}] i bruker-rekkefølge.
 // Regler (se data/koder.json):
 //  - Hovedkode pr. abo fra SALGSKODER.
-//  - ICE-familie: legges pr. ice-abo når det er >=2 ice-salg (peak: SPK26ICEFAM,
-//    ellers SICEFAMILIE).
-//  - Telia X under Sommerpeak: SPK26TEXTILB pr. X-abo + SPK26TEFAM familie fra og
-//    med X-abo nr. 2.
+//  - ICE-familie (SICEFAMILIE): legges pr. ice-abo når det er >=2 ice-salg.
+//  - Telenor Sikkerhetssenter (TNSIKKERHET): kun én gang per kunde.
 function byggTilbudskoder(brukerPlaner) {
   const iceFamilieAktiv =
     brukerPlaner.filter((v) => v.plan.leverandor === "ice").length >= 2;
-  let teliaXFamTeller = 0; // teller kun familiekvalifiserte Telia X (ikke X Ung)
-  let sikreKodeLagt = false; // Sikkerhetssenter-koder legges kun én gang per kunde.
+  let sikreKodeLagt = false; // Sikkerhetssenter-koden legges kun én gang per kunde.
 
   // Familiefordelte priser (Telenor-modellen) – brukes til å avgjøre om en U13 på
   // Sikre faktisk mottar U13-familieprisen (249) og dermed skal ha egen salgskode.
@@ -921,36 +878,16 @@ function byggTilbudskoder(brukerPlaner) {
 
     // ICE familieprovisjon – pr. abo når >=2 ice-salg.
     if (v.plan.leverandor === "ice" && iceFamilieAktiv) {
-      const ek = PEAK ? EKSTRAKODER.ice_familie_peak : EKSTRAKODER.ice_familie;
+      const ek = EKSTRAKODER.ice_familie;
       if (ek) koder.push({ kode: ek.kode, tekst: ek.tekst, type: "ekstra" });
     }
 
-    // Telenor Sikre – sikkerhetssenter-koder legges kun én gang per kunde
-    // (uavhengig av hvor mange Sikre-abo som selges), + ekstrastøtte under peak.
+    // Telenor Sikre – sikkerhetssenter-koden legges kun én gang per kunde
+    // (uavhengig av hvor mange Sikre-abo som selges).
     if (id === "telenor_sikre_mobil" && !sikreKodeLagt) {
       sikreKodeLagt = true;
       const ts = EKSTRAKODER.telenor_sikkerhet;
       if (ts) koder.push({ kode: ts.kode, tekst: ts.tekst, type: "ekstra" });
-      if (PEAK) {
-        const tsp = EKSTRAKODER.telenor_sikkerhet_peak;
-        if (tsp) koder.push({ kode: tsp.kode, tekst: tsp.tekst, type: "ekstra" });
-      }
-    }
-
-    // Telia X – peakkoder kun under Sommerpeak.
-    const erTeliaX = TELIA_X_IDS.includes(id);
-    if (erTeliaX && PEAK) {
-      // Peaksupport (tilbehørsbinding) på ALLE Telia X-salg.
-      const ps = EKSTRAKODER.telia_peaksupport;
-      if (ps) koder.push({ kode: ps.kode, tekst: ps.tekst, type: "ekstra" });
-      // Familiekode: kun familiekvalifiserte Telia X (ikke X Ung), fra og med nr. 2.
-      if (!TELIA_X_UTEN_FAM.includes(id)) {
-        teliaXFamTeller++;
-        if (teliaXFamTeller >= 2) {
-          const fam = EKSTRAKODER.telia_familie_peak;
-          if (fam) koder.push({ kode: fam.kode, tekst: fam.tekst, type: "ekstra" });
-        }
-      }
     }
 
     return {
@@ -973,5 +910,5 @@ function byggTilbudskoder(brukerPlaner) {
     })
   );
 
-  return { rader, samlet: [...tellinger.values()], peak: PEAK };
+  return { rader, samlet: [...tellinger.values()] };
 }
