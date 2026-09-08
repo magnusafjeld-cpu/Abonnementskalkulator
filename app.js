@@ -758,6 +758,10 @@ function renderPrisoversikt() {
       const ny = erNyttAbonnement(p.id);
       html += `<tr>
         <td>${p.navn}${ny ? ` <span class="ny-badge">NY</span>` : ""}${
+        p.kun_utstyrsendring
+          ? ` <span class="utstyr-badge" title="Nysalg gjøres av operatøren selv. Kan kun utstyrsendres hos oss – foreslås derfor aldri i anbefalingen.">KUN UTSTYRSENDRING</span>`
+          : ""
+      }${
         notat ? `<span class="pris-notat">${notat}</span>` : ""
       }${inkl.length ? `<span class="pris-notat">+ ${inkl.join(", ")}</span>` : ""}${
         ny ? `<button type="button" class="fjern-ny" data-id="${p.id}" title="Fjern">✕</button>` : ""

@@ -365,6 +365,9 @@ function velgKandidater(leverandor, bruker) {
     .filter(
       (p) =>
         p.leverandor === leverandor &&
+        // Planer som kun kan utstyrsendres (ikke nyselges hos Elkjøp) skal
+        // aldri foreslås – selgeren kan ikke tegne dem for kunden.
+        !p.kun_utstyrsendring &&
         alderOk(p, bruker.alder) &&
         dekkerBehov(p, bruker.behovGb) &&
         dekkerHastighet(p, bruker.hastighetMbit)

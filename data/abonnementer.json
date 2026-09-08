@@ -1,5 +1,5 @@
 {
-  "_kommentar": "Offentlig prisinfo. Oppdateres månedlig. Navn følger operatørenes egne (telenor.no, telia.no, ice.no). Pris i NOK/mnd per SIM. 'ubegrenset': true = fri data. 'hastighet_mbit' = maks hastighet planen leverer (brukes mot hastighetskrav Vanlig/Rask/Lynrask). 'alder_maks' = planen er kun for brukere t.o.m. denne alderen (junior/ung). 'alder_rabatt' = aldersbasert avslag. 'gir_familierabatt': false = planen kvalifiserer IKKE for familierabatt (ungdoms-/juniorplaner). Default ja. Priser og hastigheter er omtrentlige/eksempler - sjekk og oppdater månedlig.",
+  "_kommentar": "Offentlig prisinfo. Oppdateres månedlig. Navn følger operatørenes egne (telenor.no, telia.no, ice.no). Pris i NOK/mnd per SIM. 'ubegrenset': true = fri data. 'hastighet_mbit' = maks hastighet planen leverer (brukes mot hastighetskrav Vanlig/Rask/Lynrask). 'alder_maks' = planen er kun for brukere t.o.m. denne alderen (junior/ung). 'alder_rabatt' = aldersbasert avslag. 'gir_familierabatt': false = planen kvalifiserer IKKE for familierabatt (ungdoms-/juniorplaner). Default ja. 'kun_utstyrsendring': true = kan ikke nyselges hos Elkjop (nysalg gaar via operatoren selv) - planen vises i prisoversikten, men foreslaas ALDRI i anbefalingen. Priser og hastigheter er omtrentlige/eksempler - sjekk og oppdater månedlig.",
   "_hastighet_note": "Fastdata-/kappede planer kjører normalt full nettverkshastighet (satt høyt). Ubegrenset deles i hastighetstrinn. ice-verdiene er satt moderat (eget nett) - juster ved behov.",
   "_familierabatt_modeller": {
     "familiemedlem_fastpris": "Telenor-stil (IKKE familierabatt, men prisfordeling per person): hovedabonnent (dyreste kvalifiserte) betaler full pris, hvert ekstra medlem på ubegrenset betaler en FAST, lavere 'medlemspris' etter alder (voksen/under_30). Generell medlemspris har voksen og under_30; en under 13 faller tilbake på voksenprisen MED MINDRE planen har 'familie_medlemspris' (f.eks. Sikre Mobil: under_13 = 249). Vises som differensiert pris per person, ikke som en samlet rabattlinje. Gjelder kun ubegrenset (gjelder_kun_ubegrenset). Medlemmer med fastdata betaler egen pris.",
@@ -105,6 +105,19 @@
       "familie_medlemspris": { "under_13": 249 },
       "sikkerhet": 100,
       "inkludert": ["Telenor Sikre (sikkerhetspakke)"]
+    },
+    {
+      "id": "telenor_sikre_5gb",
+      "leverandor": "Telenor",
+      "navn": "Sikre Mobil 5 GB",
+      "data_gb": 5,
+      "ubegrenset": false,
+      "hastighet_mbit": 250,
+      "pris_per_sim": 499,
+      "alder_rabatt": [{ "maks": 12, "rabatt_kr": 100 }, { "maks": 29, "rabatt_kr": 50 }],
+      "sikkerhet": 100,
+      "inkludert": ["Telenor Sikre (sikkerhetspakke)"],
+      "kun_utstyrsendring": true
     },
 
     {

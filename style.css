@@ -1108,6 +1108,21 @@ footer {
   border-radius: 100px;
   vertical-align: middle;
 }
+/* Plan som ikke kan nyselges hos oss (kun utstyrsendring) – vises i
+   prisoversikten, men foreslås aldri i anbefalingen. */
+.utstyr-badge {
+  display: inline-block;
+  background: #fde8e6;
+  color: #8a1c12;
+  border: 1px solid #f4c2bc;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  padding: 2px 6px;
+  border-radius: 100px;
+  vertical-align: middle;
+  cursor: help;
+}
 .fjern-ny {
   border: none;
   background: #fbe4e4;
