@@ -70,7 +70,7 @@
       "data_gb": 5,
       "ubegrenset": false,
       "hastighet_mbit": 250,
-      "pris_per_sim": 399,
+      "pris_per_sim": 419,
       "alder_rabatt": [{ "maks": 12, "rabatt_kr": 250 }, { "maks": 29, "rabatt_kr": 50 }]
     },
     {
@@ -80,7 +80,7 @@
       "data_gb": 0,
       "ubegrenset": true,
       "hastighet_mbit": 250,
-      "pris_per_sim": 599,
+      "pris_per_sim": 619,
       "alder_rabatt": [{ "maks": 29, "rabatt_kr": 100 }]
     },
     {
