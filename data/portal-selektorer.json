@@ -7,7 +7,7 @@
 
   "_viktig_navn": "Telefonnummeret skal aldri havne i dataene. Hos ice staar det i sitt eget element (.existing-subscription-title) som ikke leses. Hos Telia staar det foran plannavnet, og 'navnSkille' sorger for at bare delen etter skilletegnet brukes.",
 
-  "versjon": 4,
+  "versjon": 5,
 
   "portaler": {
     "telia": {
@@ -35,6 +35,22 @@
       "navnFra": ".existing-subscription-name",
       "navnSkille": null,
       "prisFra": ".header-price",
+      "overstreketPris": null,
+      "prisMoenster": "(\\d[\\d\\s\\u00a0]*)\\s*kr",
+      "bindingMoenster": "avtaletid til|binding",
+      "bindingDatoFra": ".binding-period",
+      "datoMoenster": "(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})"
+    },
+
+    "ice_detaljer": {
+      "navn": "ice Diego",
+      "operator": "ice",
+      "urlMoenster": "diego\\.ice\\.no/sales/customer/.+/details",
+      "rot": "app-customer-agreements",
+      "kort": ":scope > div:not(.customer-agreements-title)",
+      "navnFra": ".customer-agreement-sub-heading",
+      "navnSkille": null,
+      "prisFra": ".customer-agreement-price",
       "overstreketPris": null,
       "prisMoenster": "(\\d[\\d\\s\\u00a0]*)\\s*kr",
       "bindingMoenster": "avtaletid til|binding",
