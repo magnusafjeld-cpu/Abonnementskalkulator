@@ -5,7 +5,7 @@
 
   "_viktig_navn": "Telefonnummeret skal aldri havne i dataene. Hos ice staar det i sitt eget element (.existing-subscription-title) som ikke leses. Hos Telia staar det foran plannavnet, og 'navnSkille' sorger for at bare delen etter skilletegnet brukes.",
 
-  "versjon": 2,
+  "versjon": 3,
 
   "portaler": {
     "telia": {
@@ -18,7 +18,9 @@
       "prisFra": null,
       "overstreketPris": ".subscriptionCard__priceStriketrough",
       "prisMoenster": "(\\d[\\d\\s\\u00a0]*)\\s*,-",
-      "bindingMoenster": "avtaletid|årsavtale"
+      "bindingMoenster": "avtaletid|årsavtale",
+      "bindingDatoFra": null,
+      "datoMoenster": "(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})"
     },
 
     "ice": {
@@ -31,7 +33,9 @@
       "prisFra": ".header-price",
       "overstreketPris": null,
       "prisMoenster": "(\\d[\\d\\s\\u00a0]*)\\s*kr",
-      "bindingMoenster": "avtaletid til|binding"
+      "bindingMoenster": "avtaletid til|binding",
+      "bindingDatoFra": ".binding-period",
+      "datoMoenster": "(\\d{1,2})\\.(\\d{1,2})\\.(\\d{4})"
     }
   }
 }
