@@ -1,0 +1,37 @@
+{
+  "_kommentar": "Selektorer utvidelsen bruker for aa lese kundens eksisterende abonnement i operatorenes forhandlerportaler. Ligger her slik at en layoutendring kan rettes ved aa oppdatere denne filen og pushe - uten aa rulle ut utvidelsen paa nytt. Utvidelsen har de samme verdiene innebygd som reserve, og fletter portal for portal: mangler et felt her, arves det fra de innebygde.",
+
+  "_viktig_rot": "'rot' maa peke paa en beholder UTEN input-felter. Hos Telia ligger fodselsnummer- og ID-feltene utenfor .customer-deals, og det er selve personvern-forutsetningen. Endres 'rot', maa det verifiseres paa nytt at den nye noden ikke inneholder input-felter.",
+
+  "_viktig_navn": "Telefonnummeret skal aldri havne i dataene. Hos ice staar det i sitt eget element (.existing-subscription-title) som ikke leses. Hos Telia staar det foran plannavnet, og 'navnSkille' sorger for at bare delen etter skilletegnet brukes.",
+
+  "versjon": 2,
+
+  "portaler": {
+    "telia": {
+      "navn": "Telia Nexus",
+      "urlMoenster": "telia\\.no/nexus/bestilling/kunde",
+      "rot": ".customer-deals",
+      "kort": ".subscriptionCard",
+      "navnFra": "h2, h3",
+      "navnSkille": " - ",
+      "prisFra": null,
+      "overstreketPris": ".subscriptionCard__priceStriketrough",
+      "prisMoenster": "(\\d[\\d\\s\\u00a0]*)\\s*,-",
+      "bindingMoenster": "avtaletid|årsavtale"
+    },
+
+    "ice": {
+      "navn": "ice Diego",
+      "urlMoenster": "diego\\.ice\\.no/sales/customer/.+/subscription",
+      "rot": "app-accordion.accordions",
+      "kort": "app-accordion-group",
+      "navnFra": ".existing-subscription-name",
+      "navnSkille": null,
+      "prisFra": ".header-price",
+      "overstreketPris": null,
+      "prisMoenster": "(\\d[\\d\\s\\u00a0]*)\\s*kr",
+      "bindingMoenster": "avtaletid til|binding"
+    }
+  }
+}
