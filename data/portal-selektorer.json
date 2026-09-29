@@ -3,13 +3,16 @@
 
   "_viktig_rot": "'rot' maa peke paa en beholder UTEN input-felter. Hos Telia ligger fodselsnummer- og ID-feltene utenfor .customer-deals, og det er selve personvern-forutsetningen. Endres 'rot', maa det verifiseres paa nytt at den nye noden ikke inneholder input-felter.",
 
+  "_viktig_operator": "'operator' er operatoren kunden allerede er hos, og maa stemme med navnene i kalkulatoren (Telenor/Telia/ice). Brukes til aa utelukke dagens operator fra anbefalingen.",
+
   "_viktig_navn": "Telefonnummeret skal aldri havne i dataene. Hos ice staar det i sitt eget element (.existing-subscription-title) som ikke leses. Hos Telia staar det foran plannavnet, og 'navnSkille' sorger for at bare delen etter skilletegnet brukes.",
 
-  "versjon": 3,
+  "versjon": 4,
 
   "portaler": {
     "telia": {
       "navn": "Telia Nexus",
+      "operator": "Telia",
       "urlMoenster": "telia\\.no/nexus/bestilling/kunde",
       "rot": ".customer-deals",
       "kort": ".subscriptionCard",
@@ -25,6 +28,7 @@
 
     "ice": {
       "navn": "ice Diego",
+      "operator": "ice",
       "urlMoenster": "diego\\.ice\\.no/sales/customer/.+/subscription",
       "rot": "app-accordion.accordions",
       "kort": "app-accordion-group",
